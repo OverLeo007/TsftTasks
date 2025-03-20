@@ -2,7 +2,8 @@ package ru.shift;
 
 import java.util.Scanner;
 
-public class IoManager {
+public class IoUtils {
+
     public static int scanInt() {
         System.out.println("Enter the number of rows from 1 to 32:");
         Scanner sc = new Scanner(System.in);
@@ -23,11 +24,7 @@ public class IoManager {
         return value;
     }
 
-    public static void printLines(String ...lines) {
-        StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            sb.append(line).append("\n");
-        }
-        System.out.print(sb);
+    public static void print(String line) {
+        System.out.print(line);
     }
 }
