@@ -5,7 +5,7 @@ package ru.shift;
  * Program that prints a multiplication table of the specified size.
  *
  * @author Lev Sokolov
- * @version 1.2
+ * @version 1.3
  * @since 2025.14.03
  */
 public class Main {

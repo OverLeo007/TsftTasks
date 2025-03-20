@@ -45,27 +45,26 @@ public class MultiplicationTable {
   }
 
   private String getFirstLine() {
-    return buildLine(1, true);
+    StringBuilder line = new StringBuilder(lineLenWithDividerLine);
+
+    line.append(firstSpace);
+    return buildEndOfLine(line,1);
   }
 
   private String getNumbersLine(int rowNumber) {
-    return buildLine(rowNumber, false);
-  }
-
-  private String buildLine(int firstValue, boolean isHeader) {
     StringBuilder line = new StringBuilder(lineLenWithDividerLine);
 
+    line.append(String.format(firstColCellFormat, rowNumber));
+    return buildEndOfLine(line, rowNumber);
+  }
+
+  private String buildEndOfLine(StringBuilder line, int firstValue) {
     /* Считаем заранее значения для строки */
     Object[] values =
         IntStream.range(1, tableSize + 1).map(i -> firstValue * i).boxed().toArray(Object[]::new);
 
-    /* Так как первый элемент не является частью вычисляемых значений
-    (а является номером строки) - форматируется отдельно */
-    line.append(isHeader ? firstSpace : String.format(firstColCellFormat, firstValue));
     line.append(VERTICAL_DELIMITER);
-
     line.append(lineWithoutFirstColFormat);
-
     line.append(EOL);
     line.append(dividerLine);
 
