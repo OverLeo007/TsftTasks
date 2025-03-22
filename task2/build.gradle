@@ -1,9 +1,10 @@
 plugins {
     id 'java'
+    id "io.freefair.lombok" version "8.13"
 }
 
 group = 'ru.shift'
-version = '1.2'
+version = '1.0'
 
 repositories {
     mavenCentral()
@@ -13,6 +14,12 @@ repositories {
 
 
 dependencies {
+    implementation 'org.slf4j:slf4j-api:2.0.13'
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
+    implementation 'info.picocli:picocli:4.7.6'
+    implementation 'commons-io:commons-io:2.16.1'
+
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
@@ -30,5 +37,5 @@ jar {
     }
     destinationDirectory = file("${layout.buildDirectory.get()}/outputJar")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    archiveBaseName = 'task1'
+    archiveBaseName = 'task2'
 }

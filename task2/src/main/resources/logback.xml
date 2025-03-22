@@ -1,0 +1,13 @@
+<configuration>
+<!--    <logger name="ch.qos.logback" level="ERROR" />-->
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %highlight([%level]) [%thread] %logger{36} - %highlight(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+    <root level="${log.level:-INFO}">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
