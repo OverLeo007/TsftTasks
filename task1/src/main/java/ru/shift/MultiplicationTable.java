@@ -1,6 +1,5 @@
 package ru.shift;
 
-import java.util.stream.IntStream;
 
 public class MultiplicationTable {
   private static final String VERTICAL_DELIMITER = "|";
@@ -16,7 +15,8 @@ public class MultiplicationTable {
   private final String dividerLine;
   private final int lineLenWithDividerLine;
   private final String firstColCellFormat;
-  private final String lineWithoutFirstColFormat;
+
+  private final String cellFormat;
 
   public MultiplicationTable(Integer tableSize) {
     this.tableSize = tableSize;
@@ -25,16 +25,18 @@ public class MultiplicationTable {
     this.maxCellLenFirstCol = String.valueOf(tableSize).length();
 
     this.dividerLine = getDividerLine();
+
     this.firstSpace = SPACE.repeat(maxCellLenFirstCol);
 
-    /* tableSize для VERTICAL_DELIMITER, 1 для EOL */
-    this.lineLenWithDividerLine =
-        maxCellLenFirstCol + maxCellLen * tableSize + tableSize + dividerLine.length() + 1;
-
     this.firstColCellFormat = "%" + (maxCellLenFirstCol > 1 ? maxCellLenFirstCol + "d" : "d");
-    String cellFormat = "%" + maxCellLen + "d";
-    this.lineWithoutFirstColFormat =
-        (cellFormat + VERTICAL_DELIMITER).repeat(tableSize - 1) + cellFormat;
+    this.cellFormat = "%" + maxCellLen + "d";
+
+    this.lineLenWithDividerLine =
+        maxCellLenFirstCol
+            + (Math.max(maxCellLen, cellFormat.length())) * tableSize // cells len
+            + tableSize // VERTICAL_DELIMITER len
+            + dividerLine.length() // divider line len
+            + EOL.length() * 2; // EOL after cells + EOL after divider line
   }
 
   public void printTable() {
@@ -48,7 +50,7 @@ public class MultiplicationTable {
     StringBuilder line = new StringBuilder(lineLenWithDividerLine);
 
     line.append(firstSpace);
-    return buildEndOfLine(line,1);
+    return buildEndOfLine(line, 1);
   }
 
   private String getNumbersLine(int rowNumber) {
@@ -59,16 +61,13 @@ public class MultiplicationTable {
   }
 
   private String buildEndOfLine(StringBuilder line, int firstValue) {
-    /* Считаем заранее значения для строки */
-    Object[] values =
-        IntStream.range(1, tableSize + 1).map(i -> firstValue * i).boxed().toArray(Object[]::new);
+    for(int i = 1; i < tableSize + 1; i++) {
+      line.append(VERTICAL_DELIMITER);
+      line.append(String.format(cellFormat, firstValue * i));
+    }
+    line.append(EOL).append(dividerLine).append(EOL);
 
-    line.append(VERTICAL_DELIMITER);
-    line.append(lineWithoutFirstColFormat);
-    line.append(EOL);
-    line.append(dividerLine);
-
-    return String.format(line.toString(), values);
+    return line.toString();
   }
 
   private String getDividerLine() {
