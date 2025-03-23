@@ -33,7 +33,7 @@ public class MultiplicationTable {
 
     this.lineLenWithDividerLine =
         maxCellLenFirstCol
-            + (Math.max(maxCellLen, cellFormat.length())) * tableSize // cells len
+            + maxCellLen * tableSize // cells len
             + tableSize // VERTICAL_DELIMITER len
             + dividerLine.length() // divider line len
             + EOL.length() * 2; // EOL after cells + EOL after divider line
@@ -66,7 +66,6 @@ public class MultiplicationTable {
       line.append(String.format(cellFormat, firstValue * i));
     }
     line.append(EOL).append(dividerLine).append(EOL);
-
     return line.toString();
   }
 
