@@ -18,7 +18,7 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.5.18'
     implementation 'info.picocli:picocli:4.7.6'
     implementation 'commons-io:commons-io:2.16.1'
-
+    implementation 'org.fusesource.jansi:jansi:2.4.1'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

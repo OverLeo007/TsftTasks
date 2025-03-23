@@ -1,13 +1,62 @@
 package ru.shift.figures;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import ru.shift.cli.MyUtils;
+
 public class Circle extends Figure {
+
+    private final static FigureType TYPE = FigureType.CIRCLE;
+
     private final double radius;
 
-    public Circle(double radius) {
+    private Circle(double radius) {
         this.radius = radius;
     }
 
-    public static Circle read(double[] params) {
-        return new Circle(params[0]);
+    public static Circle createFromReader(BufferedReader reader) throws IOException {
+        var paramStrs = MyUtils.parseParamsFromLine(reader, TYPE);
+        try {
+            return new Circle(MyUtils.parsePositiveDouble(paramStrs[0]));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("При попытке преобразования аргументов "
+                    + "в число произошла ошибка: " + e.getMessage());
+        }
     }
+
+    @Override
+    public void writeFigureData(BufferedWriter writer) throws IOException {
+        var figureData = getFigureData();
+        figureData.append("Радиус: ")
+                .append(DECIMAL_FORMAT.format(getRadius())).append(UNITS).append(EOL);
+        figureData.append("Диаметр: ")
+                .append(DECIMAL_FORMAT.format(computeDiameter())).append(UNITS).append(EOL);
+        super.writeFigureData(writer, figureData.toString());
+    }
+
+    @Override
+    public FigureType getType() {
+        return TYPE;
+    }
+
+    public double getRadius() {
+        return radius;
+    }
+
+    public double computeDiameter() {
+        return 2 * radius;
+    }
+
+    @Override
+    public double computePerimeter() {
+        return 2 * Math.PI * radius;
+    }
+
+    @Override
+    public double computeArea() {
+        return Math.PI * radius * radius;
+    }
+
+
 }
