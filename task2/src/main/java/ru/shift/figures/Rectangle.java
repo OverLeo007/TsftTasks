@@ -12,7 +12,7 @@ public class Rectangle extends Figure {
     private final double width;
     private final double height;
 
-    public static Rectangle createFromReader(String[] paramStrs) {
+    public static Rectangle createFromParamStrs(String[] paramStrs) {
         try {
             var params = Arrays.stream(paramStrs).mapToDouble(MyUtils::parsePositiveDouble)
                     .toArray();

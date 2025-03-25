@@ -24,7 +24,7 @@ public class Triangle extends Figure {
     private final double AC;
     private final double ACSq;
 
-    public static Triangle createFromReader(String[] paramStrs) {
+    public static Triangle createFromParamStrs(String[] paramStrs) {
         try {
             var params = Arrays.stream(paramStrs).mapToDouble(MyUtils::parsePositiveDouble)
                     .toArray();
@@ -61,7 +61,7 @@ public class Triangle extends Figure {
          * AC - AB^BC
          */
         var figureData = computeFigureDataStr();
-        figureData.append("Сторона - Длина - Противолежащий угол: ").append(EOL);
+        figureData.append("Сторона - Длина - Противолежащий угол:").append(EOL);
         figureData
                 .append("AB")
                 .append(DELIMITER)

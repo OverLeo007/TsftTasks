@@ -11,7 +11,7 @@ public class Circle extends Figure {
 
     private final double radius;
 
-    public static Circle createFromReader(String[] paramStrs) {
+    public static Circle createFromParamStrs(String[] paramStrs) {
         try {
             return new Circle(MyUtils.parsePositiveDouble(paramStrs[0]));
         } catch (IllegalArgumentException e) {
@@ -33,7 +33,6 @@ public class Circle extends Figure {
                 .append(DECIMAL_FORMAT.format(computeDiameter())).append(UNITS).append(EOL);
         super.writeFigureData(writer, figureData.toString());
     }
-
     @Override
     public FigureType getType() {
         return FIGURE_TYPE;

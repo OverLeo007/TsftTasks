@@ -17,9 +17,9 @@ public class FigureFactory {
             log.debug("Тип фигуры: {}", figureType);
             var figureParamStrs = MyUtils.readParamsFromLine(reader, figureType);
             return switch (figureType) {
-                case CIRCLE -> Circle.createFromReader(figureParamStrs);
-                case RECTANGLE -> Rectangle.createFromReader(figureParamStrs);
-                case TRIANGLE -> Triangle.createFromReader(figureParamStrs);
+                case CIRCLE -> Circle.createFromParamStrs(figureParamStrs);
+                case RECTANGLE -> Rectangle.createFromParamStrs(figureParamStrs);
+                case TRIANGLE -> Triangle.createFromParamStrs(figureParamStrs);
             };
         } catch (IllegalArgumentException e) {
             log.error("При создании фигуры произошла ошибка: {}", e.getMessage());
