@@ -1,22 +1,17 @@
 package ru.shift.figures;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import ru.shift.cli.MyUtils;
 
+@SuppressWarnings("LombokGetterMayBeUsed")
 public class Circle extends Figure {
 
-    private final static FigureType TYPE = FigureType.CIRCLE;
+    private final static FigureType FIGURE_TYPE = FigureType.CIRCLE;
 
     private final double radius;
 
-    private Circle(double radius) {
-        this.radius = radius;
-    }
-
-    public static Circle createFromReader(BufferedReader reader) throws IOException {
-        var paramStrs = MyUtils.parseParamsFromLine(reader, TYPE);
+    public static Circle createFromReader(String[] paramStrs) {
         try {
             return new Circle(MyUtils.parsePositiveDouble(paramStrs[0]));
         } catch (IllegalArgumentException e) {
@@ -25,9 +20,13 @@ public class Circle extends Figure {
         }
     }
 
+    private Circle(double radius) {
+        this.radius = radius;
+    }
+
     @Override
     public void writeFigureData(BufferedWriter writer) throws IOException {
-        var figureData = getFigureData();
+        var figureData = computeFigureDataStr();
         figureData.append("Радиус: ")
                 .append(DECIMAL_FORMAT.format(getRadius())).append(UNITS).append(EOL);
         figureData.append("Диаметр: ")
@@ -37,7 +36,7 @@ public class Circle extends Figure {
 
     @Override
     public FigureType getType() {
-        return TYPE;
+        return FIGURE_TYPE;
     }
 
     public double getRadius() {

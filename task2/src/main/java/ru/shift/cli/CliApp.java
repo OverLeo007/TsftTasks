@@ -95,7 +95,6 @@ public class CliApp implements Runnable {
 
         try {
             MyUtils.createDirForFileIfNotExist(outputType.outputFileName);
-
             BufferedWriter writer = createWriter();
             try (
                     BufferedReader reader = createReader()
@@ -109,6 +108,9 @@ public class CliApp implements Runnable {
                     log.debug("Закрытие потока вывода");
                     writer.close();
                 } else {
+                    /* Только при использовании консольного вывода
+                       так как close() и так вызывает flush(),
+                       а нам не нужно закрывать поток, но нужно его очистить */
                     log.debug("Очистка буфера консольного вывода");
                     writer.flush();
                 }

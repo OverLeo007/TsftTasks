@@ -2,9 +2,9 @@ package ru.shift.figures;
 
 
 import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.cli.MyUtils;
 
 @Slf4j
 public class FigureFactory {
@@ -13,31 +13,18 @@ public class FigureFactory {
             throws IOException, IllegalArgumentException {
         log.debug("Создание фигуры");
         try {
-            var figureType = FigureType.fromString(readFigType(reader));
+            var figureType = FigureType.fromString(MyUtils.readFigType(reader));
             log.debug("Тип фигуры: {}", figureType);
+            var figureParamStrs = MyUtils.readParamsFromLine(reader, figureType);
             return switch (figureType) {
-                case CIRCLE -> Circle.createFromReader(reader);
-                case RECTANGLE -> Rectangle.createFromReader(reader);
-                case TRIANGLE -> Triangle.createFromReader(reader);
+                case CIRCLE -> Circle.createFromReader(figureParamStrs);
+                case RECTANGLE -> Rectangle.createFromReader(figureParamStrs);
+                case TRIANGLE -> Triangle.createFromReader(figureParamStrs);
             };
         } catch (IllegalArgumentException e) {
             log.error("При создании фигуры произошла ошибка: {}", e.getMessage());
             log.debug("Подробности ошибки: ", e);
             throw e;
         }
-
-    }
-
-    private static String readFigType(BufferedReader reader) throws IOException {
-        log.debug("Чтение типа фигуры из файла");
-        var figureTypeLine = reader.readLine();
-        if (figureTypeLine == null) {
-            throw new EOFException("Файл пуст");
-        }
-        figureTypeLine = figureTypeLine.trim();
-        if (figureTypeLine.isBlank()) {
-            throw new IllegalArgumentException("Название фигуры не может быть пустым");
-        }
-        return figureTypeLine;
     }
 }

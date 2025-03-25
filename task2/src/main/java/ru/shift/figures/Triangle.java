@@ -1,6 +1,5 @@
 package ru.shift.figures;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,7 +13,7 @@ public class Triangle extends Figure {
     private static final String DEG = "°";
     private static final String DELIMITER = " - ";
 
-    private final static FigureType TYPE = FigureType.TRIANGLE;
+    private final static FigureType FIGURE_TYPE = FigureType.TRIANGLE;
 
     private final double AB;
     private final double ABSq;
@@ -24,6 +23,19 @@ public class Triangle extends Figure {
 
     private final double AC;
     private final double ACSq;
+
+    public static Triangle createFromReader(String[] paramStrs) {
+        try {
+            var params = Arrays.stream(paramStrs).mapToDouble(MyUtils::parsePositiveDouble)
+                    .toArray();
+            return new Triangle(params[0], params[1], params[2]);
+        } catch (IllegalTriangleSidesLenException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("При попытке преобразования аргументов "
+                    + "в число произошла ошибка: " + e.getMessage());
+        }
+    }
 
     private Triangle(double AB, double BC, double AC) {
         if (!((AB + BC > AC) && (AB + AC > BC) && (BC + AC > AB))) {
@@ -41,20 +53,6 @@ public class Triangle extends Figure {
         this.ACSq = AC * AC;
     }
 
-    public static Triangle createFromReader(BufferedReader reader) throws IOException {
-        var paramStrs = MyUtils.parseParamsFromLine(reader, TYPE);
-        try {
-            var params = Arrays.stream(paramStrs).mapToDouble(MyUtils::parsePositiveDouble)
-                    .toArray();
-            return new Triangle(params[0], params[1], params[2]);
-        } catch (IllegalTriangleSidesLenException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("При попытке преобразования аргументов "
-                    + "в число произошла ошибка: " + e.getMessage());
-        }
-    }
-
     @Override
     public void writeFigureData(BufferedWriter writer) throws IOException {
         /*
@@ -62,7 +60,7 @@ public class Triangle extends Figure {
          * BC - AB^AC
          * AC - AB^BC
          */
-        var figureData = getFigureData();
+        var figureData = computeFigureDataStr();
         figureData.append("Сторона - Длина - Противолежащий угол: ").append(EOL);
         figureData
                 .append("AB")
@@ -90,7 +88,7 @@ public class Triangle extends Figure {
 
     @Override
     public FigureType getType() {
-        return TYPE;
+        return FIGURE_TYPE;
     }
 
     @Override

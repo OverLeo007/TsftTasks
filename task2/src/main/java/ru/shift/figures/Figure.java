@@ -13,7 +13,15 @@ public abstract class Figure {
     static final String UNITS = " см";
     static final String SQ_UNITS = UNITS + "²";
 
-    StringBuilder getFigureData() {
+    public abstract void writeFigureData(BufferedWriter writer) throws IOException;
+
+    public abstract FigureType getType();
+
+    public abstract double computePerimeter();
+
+    public abstract double computeArea();
+
+    StringBuilder computeFigureDataStr() {
         var builder = new StringBuilder();
         builder.append("Тип фигуры: ")
                 .append(getType()).append(EOL);
@@ -28,13 +36,5 @@ public abstract class Figure {
         log.debug("Печать данных фигуры в заданный поток вывода");
         writer.write(figureData);
     }
-
-    public abstract void writeFigureData(BufferedWriter writer) throws IOException;
-
-    public abstract FigureType getType();
-
-    public abstract double computePerimeter();
-
-    public abstract double computeArea();
 
 }
