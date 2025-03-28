@@ -1,13 +1,12 @@
-package ru.shift.utilsTests;
+package ru.shift.utils.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
-import ru.shift.cli.MyUtils;
+import ru.shift.utils.ParseUtils;
 
-@SuppressWarnings("ConstantValue")
-public class ParsePositiveDoubleTest {
+public class ParseUtilsTest {
 
     @Test
     void parsePositiveDouble_ValidInput() {
@@ -17,18 +16,19 @@ public class ParsePositiveDoubleTest {
         String input3 = "100";
 
         // act & assert
-        assertThat(MyUtils.parsePositiveDouble(input1)).isEqualTo(1.0);
-        assertThat(MyUtils.parsePositiveDouble(input2)).isEqualTo(10.5);
-        assertThat(MyUtils.parsePositiveDouble(input3)).isEqualTo(100.0);
+        assertThat(ParseUtils.parsePositiveDouble(input1)).isEqualTo(1.0);
+        assertThat(ParseUtils.parsePositiveDouble(input2)).isEqualTo(10.5);
+        assertThat(ParseUtils.parsePositiveDouble(input3)).isEqualTo(100.0);
     }
 
+    @SuppressWarnings("ConstantValue")
     @Test
     void parsePositiveDouble_ThrowsForNull() {
         // arrange
         String input = null;
 
         // act & assert
-        assertThatThrownBy(() -> MyUtils.parsePositiveDouble(input))
+        assertThatThrownBy(() -> ParseUtils.parsePositiveDouble(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Строка не может быть пустой");
     }
@@ -41,7 +41,7 @@ public class ParsePositiveDoubleTest {
         String input = "   ";
 
         // act & assert
-        assertThatThrownBy(() -> MyUtils.parsePositiveDouble(input))
+        assertThatThrownBy(() -> ParseUtils.parsePositiveDouble(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Строка не может быть пустой");
     }
@@ -52,9 +52,9 @@ public class ParsePositiveDoubleTest {
         String input = "abc";
 
         // act & assert
-        assertThatThrownBy(() -> MyUtils.parsePositiveDouble(input))
+        assertThatThrownBy(() -> ParseUtils.parsePositiveDouble(input))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Значение должно быть числом, но получено: abc");
+                .hasMessage("Значение должно быть числом, но получено: \"abc\"");
     }
 
     @Test
@@ -63,7 +63,7 @@ public class ParsePositiveDoubleTest {
         String input = "-5";
 
         // act & assert
-        assertThatThrownBy(() -> MyUtils.parsePositiveDouble(input))
+        assertThatThrownBy(() -> ParseUtils.parsePositiveDouble(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Значение должно быть >= 1");
     }
@@ -74,7 +74,7 @@ public class ParsePositiveDoubleTest {
         String input = "0";
 
         // act & assert
-        assertThatThrownBy(() -> MyUtils.parsePositiveDouble(input))
+        assertThatThrownBy(() -> ParseUtils.parsePositiveDouble(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Значение должно быть >= 1");
     }
@@ -85,7 +85,7 @@ public class ParsePositiveDoubleTest {
         String input = "0.99";
 
         // act & assert
-        assertThatThrownBy(() -> MyUtils.parsePositiveDouble(input))
+        assertThatThrownBy(() -> ParseUtils.parsePositiveDouble(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Значение должно быть >= 1");
     }

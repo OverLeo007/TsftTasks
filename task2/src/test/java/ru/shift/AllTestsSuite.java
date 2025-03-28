@@ -2,19 +2,16 @@ package ru.shift;
 
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
-import ru.shift.utilsTests.ConstantsTest;
-import ru.shift.utilsTests.ParsePositiveDoubleTest;
-import ru.shift.utilsTests.ReadFromFileTest;
+import ru.shift.factory.test.FactoryTestsSuite;
+import ru.shift.figure.tests.FigureTestsSuite;
+import ru.shift.utils.tests.UtilTestsSuite;
 
 
 @Suite
 @SelectClasses({
-        FigureObjectsTest.class,
-        FigureTypeEnumTest.class,
-        ParsePositiveDoubleTest.class,
-        ConstantsTest.class,
-        ReadFromFileTest.class
+        FigureTestsSuite.class,
+        UtilTestsSuite.class,
+        FactoryTestsSuite.class
 })
 public class AllTestsSuite {
-    // Этот класс просто запускает другие тесты.
 }

@@ -2,10 +2,9 @@ package ru.shift.figures;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.cli.MyUtils;
 import ru.shift.exceptions.IllegalTriangleSidesLenException;
+import ru.shift.factory.FigureType;
 
 @Slf4j
 public class Triangle extends Figure {
@@ -24,20 +23,7 @@ public class Triangle extends Figure {
     private final double AC;
     private final double ACSq;
 
-    public static Triangle createFromParamStrs(String[] paramStrs) {
-        try {
-            var params = Arrays.stream(paramStrs).mapToDouble(MyUtils::parsePositiveDouble)
-                    .toArray();
-            return new Triangle(params[0], params[1], params[2]);
-        } catch (IllegalTriangleSidesLenException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("При попытке преобразования аргументов "
-                    + "в число произошла ошибка: " + e.getMessage());
-        }
-    }
-
-    private Triangle(double AB, double BC, double AC) {
+    public Triangle(double AB, double BC, double AC) {
         if (!((AB + BC > AC) && (AB + AC > BC) && (BC + AC > AB))) {
             throw new IllegalTriangleSidesLenException(
                     "Треугольник со сторонами %.2f %.2f %.2f невозможен".formatted(AB, BC, AC)

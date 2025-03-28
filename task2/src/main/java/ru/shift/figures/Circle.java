@@ -2,7 +2,7 @@ package ru.shift.figures;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import ru.shift.cli.MyUtils;
+import ru.shift.factory.FigureType;
 
 @SuppressWarnings("LombokGetterMayBeUsed")
 public class Circle extends Figure {
@@ -11,16 +11,7 @@ public class Circle extends Figure {
 
     private final double radius;
 
-    public static Circle createFromParamStrs(String[] paramStrs) {
-        try {
-            return new Circle(MyUtils.parsePositiveDouble(paramStrs[0]));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("При попытке преобразования аргументов "
-                    + "в число произошла ошибка: " + e.getMessage());
-        }
-    }
-
-    private Circle(double radius) {
+    public Circle(double radius) {
         this.radius = radius;
     }
 

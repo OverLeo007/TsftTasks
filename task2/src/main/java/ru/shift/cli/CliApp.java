@@ -13,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import ru.shift.factory.FactoriesRegistry;
+import ru.shift.factory.FigureFactory;
 import ru.shift.figures.Figure;
-import ru.shift.figures.FigureFactory;
+import ru.shift.utils.FileSystemUtils;
 
 @Command(
         name = "Фигуры",
@@ -94,13 +96,14 @@ public class CliApp implements Runnable {
         }
 
         try {
-            MyUtils.createDirForFileIfNotExist(outputType.outputFileName);
+            FileSystemUtils.createDirForFileIfNotExist(outputType.outputFileName);
             BufferedWriter writer = createWriter();
             try (
                     BufferedReader reader = createReader()
             ) {
                 log.info("Создание фигуры из данных файла {}", inputFilePath);
-                Figure figure = FigureFactory.createFigureFromFile(reader);
+                FigureFactory<?> factory = FactoriesRegistry.getFactory(reader);
+                Figure figure = factory.createFigure(reader);
                 log.info("Фигура {} создана, печать значений...", figure.getType());
                 figure.writeFigureData(writer);
             } finally {
@@ -127,6 +130,7 @@ public class CliApp implements Runnable {
         } catch (IllegalArgumentException e) {
             log.error("Работа программы не возможна из-за "
                     + "некорректного содержимого входного файла");
+            log.debug("Подробности ошибки", e);
             return;
         }
         log.info("Работа программы завершена успешно");

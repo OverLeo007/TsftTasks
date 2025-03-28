@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.factory.FigureType;
 
 @Slf4j
 public abstract class Figure {
