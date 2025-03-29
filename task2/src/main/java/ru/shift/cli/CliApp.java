@@ -125,13 +125,12 @@ public class CliApp implements Runnable {
                     e.getClass().getSimpleName(),
                     e.getMessage());
             log.debug("Подробности ошибки", e);
-            return;
-
+            System.exit(1);
         } catch (IllegalArgumentException e) {
             log.error("Работа программы не возможна из-за "
                     + "некорректного содержимого входного файла");
             log.debug("Подробности ошибки", e);
-            return;
+            System.exit(2);
         }
         log.info("Работа программы завершена успешно");
 
