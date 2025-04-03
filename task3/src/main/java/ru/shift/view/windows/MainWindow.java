@@ -19,11 +19,14 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+import ru.shift.controller.listeners.CM_CellEventListener;
+import ru.shift.model.cellEvent.CellState;
+import ru.shift.model.cellEvent.listeners.MV_CellEventListener;
 import ru.shift.view.ButtonType;
 import ru.shift.view.GameImage;
-import ru.shift.view.listeners.CellEventListener;
+import ru.shift.view.listeners.VC_CellEventListener;
 
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements MV_CellEventListener {
 
     private final Container contentPane;
     private final GridBagLayout mainLayout;
@@ -33,7 +36,7 @@ public class MainWindow extends JFrame {
     private JMenuItem settingsMenu;
     private JMenuItem exitMenu;
 
-    private CellEventListener listener;
+    private VC_CellEventListener listener;
 
     private JButton[][] cellButtons;
     private JLabel timerLabel;
@@ -87,12 +90,13 @@ public class MainWindow extends JFrame {
         exitMenu.addActionListener(listener);
     }
 
-    public void setCellListener(CellEventListener listener) {
+    public void setCellListener(VC_CellEventListener listener) {
         this.listener = listener;
     }
 
-    public void setCellImage(int x, int y, GameImage gameImage) {
-        cellButtons[y][x].setIcon(gameImage.getImageIcon());
+    @Override
+    public void setCellState(int x, int y, CellState cellState) {
+        cellButtons[y][x].setIcon(GameImage.fromCellState(cellState).getImageIcon());
     }
 
     public void setBombsCount(int bombsCount) {
@@ -139,10 +143,10 @@ public class MainWindow extends JFrame {
                             case MouseEvent.BUTTON1:
                                 listener.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
                                 break;
-                            case MouseEvent.BUTTON2:
+                            case MouseEvent.BUTTON3:
                                 listener.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
                                 break;
-                            case MouseEvent.BUTTON3:
+                            case MouseEvent.BUTTON2:
                                 listener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
                                 break;
                             default:
@@ -213,4 +217,7 @@ public class MainWindow extends JFrame {
         mainLayout.setConstraints(label, gbc);
         contentPane.add(label);
     }
+
+
+
 }

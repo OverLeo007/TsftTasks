@@ -1,25 +1,35 @@
 package ru.shift.app;
 
 
-import ru.shift.view.GameImage;
+import lombok.extern.slf4j.Slf4j;
+import ru.shift.controller.CellEventController;
+import ru.shift.model.cellEvent.CellEventModel;
 import ru.shift.view.windows.HighScoresWindow;
 import ru.shift.view.windows.MainWindow;
 import ru.shift.view.windows.SettingsWindow;
 
+@Slf4j
 public class Application {
+
+    private final MainWindow mainWindow = new MainWindow();
+    private final SettingsWindow settingsWindow = new SettingsWindow(mainWindow);
+    private final HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
+    private final CellEventModel cellEventModel = new CellEventModel(mainWindow);
+    private final CellEventController cellEventController = new CellEventController(cellEventModel);
+
+
+
     public static void main(String[] args) {
-        MainWindow mainWindow = new MainWindow();
-        SettingsWindow settingsWindow = new SettingsWindow(mainWindow);
-        HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
+        var app = new Application();
 
-        mainWindow.setNewGameMenuAction(e -> { /* TODO */ });
-        mainWindow.setSettingsMenuAction(e -> settingsWindow.setVisible(true));
-        mainWindow.setHighScoresMenuAction(e -> highScoresWindow.setVisible(true));
-        mainWindow.setExitMenuAction(e -> mainWindow.dispose());
-        mainWindow.setCellListener((x, y, buttonType) -> { /* TODO */ });
+        app.mainWindow.setNewGameMenuAction(e -> { /* TODO */ });
+        app.mainWindow.setSettingsMenuAction(e -> app.settingsWindow.setVisible(true));
+        app.mainWindow.setHighScoresMenuAction(e -> app.highScoresWindow.setVisible(true));
+        app.mainWindow.setExitMenuAction(e -> app.mainWindow.dispose());
+        app.mainWindow.setCellListener(app.cellEventController);
 
-        mainWindow.createGameField(10, 10);
-        mainWindow.setVisible(true);
+        app.mainWindow.createGameField(10, 10);
+        app.mainWindow.setVisible(true);
 
         // TODO: There is a sample code below, remove it after try
 

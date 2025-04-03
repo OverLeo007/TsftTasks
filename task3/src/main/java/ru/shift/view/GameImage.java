@@ -1,6 +1,7 @@
 package ru.shift.view;
 
 import javax.swing.*;
+import ru.shift.model.cellEvent.CellState;
 
 public enum GameImage {
     CLOSED("cell.png"),
@@ -32,5 +33,22 @@ public enum GameImage {
         }
 
         return imageIcon;
+    }
+    
+    public synchronized static GameImage fromCellState(CellState cellState) {
+       return switch (cellState) {
+           case BOMB -> GameImage.BOMB;
+           case CLOSED -> GameImage.CLOSED;
+            case FLAG -> GameImage.MARKED;
+            case EMPTY -> GameImage.EMPTY;
+            case ONE -> GameImage.NUM_1;
+            case TWO -> GameImage.NUM_2;
+            case THREE -> GameImage.NUM_3;
+            case FOUR -> GameImage.NUM_4;
+            case FIVE -> GameImage.NUM_5;
+            case SIX -> GameImage.NUM_6;
+            case SEVEN -> GameImage.NUM_7;
+            case EIGHT -> GameImage.NUM_8;
+        };
     }
 }
