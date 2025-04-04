@@ -19,14 +19,21 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
-import ru.shift.controller.listeners.CM_CellEventListener;
-import ru.shift.model.cellEvent.CellState;
-import ru.shift.model.cellEvent.listeners.MV_CellEventListener;
+import lombok.Setter;
 import ru.shift.view.ButtonType;
 import ru.shift.view.GameImage;
-import ru.shift.view.listeners.VC_CellEventListener;
+import ru.shift.view.GameType;
+import ru.shift.view.listeners.VC_FieldEventListener;
+import ru.shift.view.listeners.VC_GameTypeListener;
 
-public class MainWindow extends JFrame implements MV_CellEventListener {
+public class MainWindow extends JFrame  {
+
+    @Setter
+    private VC_FieldEventListener fieldEventListener;
+    @Setter
+    private VC_GameTypeListener gameTypeListener;
+
+
 
     private final Container contentPane;
     private final GridBagLayout mainLayout;
@@ -36,9 +43,8 @@ public class MainWindow extends JFrame implements MV_CellEventListener {
     private JMenuItem settingsMenu;
     private JMenuItem exitMenu;
 
-    private VC_CellEventListener listener;
 
-    private JButton[][] cellButtons;
+    protected JButton[][] cellButtons;
     private JLabel timerLabel;
     private JLabel bombsCounterLabel;
 
@@ -70,13 +76,13 @@ public class MainWindow extends JFrame implements MV_CellEventListener {
 
         menuBar.add(gameMenu);
 
-
         setJMenuBar(menuBar);
+
+        newGameMenu.addActionListener(e -> gameTypeListener.onGameTypeChanged(GameType.PREVIOUS));
+        exitMenu.addActionListener(e -> dispose());
+
     }
 
-    public void setNewGameMenuAction(ActionListener listener) {
-        newGameMenu.addActionListener(listener);
-    }
 
     public void setHighScoresMenuAction(ActionListener listener) {
         highScoresMenu.addActionListener(listener);
@@ -84,19 +90,6 @@ public class MainWindow extends JFrame implements MV_CellEventListener {
 
     public void setSettingsMenuAction(ActionListener listener) {
         settingsMenu.addActionListener(listener);
-    }
-
-    public void setExitMenuAction(ActionListener listener) {
-        exitMenu.addActionListener(listener);
-    }
-
-    public void setCellListener(VC_CellEventListener listener) {
-        this.listener = listener;
-    }
-
-    @Override
-    public void setCellState(int x, int y, CellState cellState) {
-        cellButtons[y][x].setIcon(GameImage.fromCellState(cellState).getImageIcon());
     }
 
     public void setBombsCount(int bombsCount) {
@@ -135,19 +128,19 @@ public class MainWindow extends JFrame implements MV_CellEventListener {
                 cellButtons[y][x].addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseReleased(MouseEvent e) {
-                        if (listener == null) {
+                        if (fieldEventListener == null) {
                             return;
                         }
 
                         switch (e.getButton()) {
                             case MouseEvent.BUTTON1:
-                                listener.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
+                                fieldEventListener.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
                                 break;
                             case MouseEvent.BUTTON3:
-                                listener.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
+                                fieldEventListener.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
                                 break;
                             case MouseEvent.BUTTON2:
-                                listener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
+                                fieldEventListener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
                                 break;
                             default:
                                 // Other mouse buttons are ignored
@@ -217,7 +210,4 @@ public class MainWindow extends JFrame implements MV_CellEventListener {
         mainLayout.setConstraints(label, gbc);
         contentPane.add(label);
     }
-
-
-
 }

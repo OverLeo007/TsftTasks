@@ -1,7 +1,7 @@
 package ru.shift.view;
 
 import javax.swing.*;
-import ru.shift.model.cellEvent.CellState;
+import ru.shift.model.field.CellState;
 
 public enum GameImage {
     CLOSED("cell.png"),

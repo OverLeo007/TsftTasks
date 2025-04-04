@@ -1,4 +1,4 @@
-package ru.shift.model.cellEvent;
+package ru.shift.model.field;
 
 import java.util.Arrays;
 import java.util.Map;

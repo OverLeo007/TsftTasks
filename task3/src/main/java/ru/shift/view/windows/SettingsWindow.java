@@ -5,16 +5,17 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.model.listeners.MV_GameTypeListener;
 import ru.shift.view.GameType;
-import ru.shift.view.listeners.GameTypeListener;
+import ru.shift.view.listeners.VC_GameTypeListener;
 
 @Slf4j
-public class SettingsWindow extends JDialog {
+public class SettingsWindow extends JDialog implements MV_GameTypeListener {
 
     private final Map<GameType, JRadioButton> radioButtonsMap = new HashMap<>(3);
     private final ButtonGroup radioGroup = new ButtonGroup();
 
-    private GameTypeListener gameTypeListener;
+    private VC_GameTypeListener gameTypeListener;
     private GameType gameType;
 
     public SettingsWindow(JFrame owner) {
@@ -55,7 +56,8 @@ public class SettingsWindow extends JDialog {
         radioGroup.setSelected(radioButton.getModel(), true);
     }
 
-    public void setGameTypeListener(GameTypeListener gameTypeListener) {
+    @SuppressWarnings("LombokSetterMayBeUsed")
+    public void setGameTypeListener(VC_GameTypeListener gameTypeListener) {
         this.gameTypeListener = gameTypeListener;
     }
 
@@ -120,5 +122,10 @@ public class SettingsWindow extends JDialog {
         layout.setConstraints(cancelButton, gbc);
 
         return cancelButton;
+    }
+
+    @Override
+    public void onGameTypeSelected(GameType gameType) {
+        setGameType(gameType);
     }
 }

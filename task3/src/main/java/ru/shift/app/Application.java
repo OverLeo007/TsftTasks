@@ -2,36 +2,45 @@ package ru.shift.app;
 
 
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.controller.CellEventController;
-import ru.shift.model.cellEvent.CellEventModel;
+import ru.shift.controller.FieldEventController;
+import ru.shift.controller.SettingsController;
+import ru.shift.model.field.FieldModel;
+import ru.shift.view.GameType;
+import ru.shift.view.observers.MainWindowObserver;
 import ru.shift.view.windows.HighScoresWindow;
-import ru.shift.view.windows.MainWindow;
 import ru.shift.view.windows.SettingsWindow;
 
 @Slf4j
 public class Application {
 
-    private final MainWindow mainWindow = new MainWindow();
+    private final MainWindowObserver mainWindow = new MainWindowObserver();
     private final SettingsWindow settingsWindow = new SettingsWindow(mainWindow);
-    private final HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
-    private final CellEventModel cellEventModel = new CellEventModel(mainWindow);
-    private final CellEventController cellEventController = new CellEventController(cellEventModel);
 
+    private final FieldModel fieldModel = FieldModel.builder()
+            .fieldEventListener(mainWindow)
+            .gameTypeListener(settingsWindow)
+            .build();
+    private final FieldEventController fieldEventController = new FieldEventController(fieldModel);
+
+    private final SettingsController settingsController = new SettingsController(fieldModel);
+
+    private final HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
+
+//    private final WinWindow winWindow = new WinWindow(mainWindow);
+//    private final LoseWindow loseWindow = new LoseWindow(mainWindow);
 
 
     public static void main(String[] args) {
         var app = new Application();
 
-        app.mainWindow.setNewGameMenuAction(e -> { /* TODO */ });
+        app.bindListenersToView();
+
         app.mainWindow.setSettingsMenuAction(e -> app.settingsWindow.setVisible(true));
         app.mainWindow.setHighScoresMenuAction(e -> app.highScoresWindow.setVisible(true));
-        app.mainWindow.setExitMenuAction(e -> app.mainWindow.dispose());
-        app.mainWindow.setCellListener(app.cellEventController);
 
-        app.mainWindow.createGameField(10, 10);
+        app.mainWindow.createGameField(9, 9);
+        app.fieldModel.onGameTypeSelected(GameType.PREVIOUS);
         app.mainWindow.setVisible(true);
-
-        // TODO: There is a sample code below, remove it after try
 
 //        mainWindow.setTimerValue(145);
 //        mainWindow.setBombsCount(45);
@@ -47,5 +56,11 @@ public class Application {
 //        mainWindow.setCellImage(1, 5, GameImage.NUM_6);
 //        mainWindow.setCellImage(1, 6, GameImage.NUM_7);
 //        mainWindow.setCellImage(1, 7, GameImage.NUM_8);
+    }
+
+    private void bindListenersToView() {
+        mainWindow.setFieldEventListener(fieldEventController);
+        mainWindow.setGameTypeListener(settingsController);
+        settingsWindow.setGameTypeListener(settingsController);
     }
 }
