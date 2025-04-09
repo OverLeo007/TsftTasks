@@ -3,7 +3,7 @@ package ru.shift.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.listeners.CM_GameTypeListener;
-import ru.shift.view.GameType;
+import ru.shift.model.GameType;
 import ru.shift.view.listeners.VC_GameTypeListener;
 
 @RequiredArgsConstructor

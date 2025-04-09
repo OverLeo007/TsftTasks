@@ -1,4 +1,4 @@
-package ru.shift.view;
+package ru.shift.model;
 
 import lombok.RequiredArgsConstructor;
 

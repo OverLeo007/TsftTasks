@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.model.listeners.MV_GameTypeListener;
-import ru.shift.view.GameType;
+import ru.shift.model.GameType;
 import ru.shift.view.listeners.VC_GameTypeListener;
 
 @Slf4j

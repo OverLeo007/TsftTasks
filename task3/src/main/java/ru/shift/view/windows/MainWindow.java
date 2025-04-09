@@ -22,7 +22,7 @@ import javax.swing.WindowConstants;
 import lombok.Setter;
 import ru.shift.view.ButtonType;
 import ru.shift.view.GameImage;
-import ru.shift.view.GameType;
+import ru.shift.model.GameType;
 import ru.shift.view.listeners.VC_FieldEventListener;
 import ru.shift.view.listeners.VC_GameTypeListener;
 

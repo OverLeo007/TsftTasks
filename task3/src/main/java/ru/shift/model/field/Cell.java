@@ -14,4 +14,11 @@ public class Cell {
     private boolean isOpen = false;
     private boolean isFlagged = false;
     private boolean isBomb = false;
+
+    private CellState state;
+
+    public boolean isClosed() {
+        return !isOpen;
+    }
+
 }

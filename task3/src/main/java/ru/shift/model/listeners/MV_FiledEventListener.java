@@ -4,7 +4,7 @@ import java.util.List;
 import ru.shift.controller.listeners.CM_FieldEventListener;
 import ru.shift.model.field.CellState;
 import ru.shift.model.field.CellStateChange;
-import ru.shift.view.GameType;
+import ru.shift.model.GameType;
 import ru.shift.view.listeners.VC_FieldEventListener;
 
 /**

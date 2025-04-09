@@ -6,9 +6,10 @@ import ru.shift.model.field.CellState;
 import ru.shift.model.field.CellStateChange;
 import ru.shift.model.listeners.MV_FiledEventListener;
 import ru.shift.view.GameImage;
-import ru.shift.view.GameType;
+import ru.shift.model.GameType;
 import ru.shift.view.windows.MainWindow;
 
+// TODO: Заменить наследование на композицию
 @Slf4j
 public class MainWindowObserver extends MainWindow implements MV_FiledEventListener {
 
@@ -35,5 +36,4 @@ public class MainWindowObserver extends MainWindow implements MV_FiledEventListe
             onChangeCellState(change.x(), change.y(), change.cellState());
         }
     }
-
 }

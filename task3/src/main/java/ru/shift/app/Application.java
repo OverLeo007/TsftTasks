@@ -1,17 +1,22 @@
 package ru.shift.app;
 
 
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.FieldEventController;
 import ru.shift.controller.SettingsController;
 import ru.shift.model.field.FieldModel;
-import ru.shift.view.GameType;
+import ru.shift.model.GameType;
 import ru.shift.view.observers.MainWindowObserver;
 import ru.shift.view.windows.HighScoresWindow;
 import ru.shift.view.windows.SettingsWindow;
-
+// TODO: не увлекаться стримингом
+//
 @Slf4j
 public class Application {
+
+    Thread mainThread = Thread.currentThread();
+    AtomicInteger a = new AtomicInteger(0);
 
     private final MainWindowObserver mainWindow = new MainWindowObserver();
     private final SettingsWindow settingsWindow = new SettingsWindow(mainWindow);

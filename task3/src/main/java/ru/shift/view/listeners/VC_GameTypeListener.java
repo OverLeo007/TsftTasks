@@ -1,6 +1,6 @@
 package ru.shift.view.listeners;
 
-import ru.shift.view.GameType;
+import ru.shift.model.GameType;
 
 public interface VC_GameTypeListener {
 

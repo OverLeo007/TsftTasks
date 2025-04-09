@@ -5,15 +5,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Stack;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.listeners.CM_FieldEventListener;
 import ru.shift.controller.listeners.CM_GameTypeListener;
+import ru.shift.model.GameType;
 import ru.shift.model.listeners.MV_FiledEventListener;
 import ru.shift.model.listeners.MV_GameTypeListener;
-import ru.shift.view.GameType;
 
 @Slf4j
 public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
@@ -44,13 +46,62 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
         log.debug("Try to open cell at ({}, {})", x, y);
 
         switch (gameState) {
-            case STOP -> {
-                startGameFrom(x, y);
-            }
-            case PLAY -> {
-                openCell(x, y);
-            }
+            case STOP -> startGameFrom(x, y);
+            case PLAY -> openCell(x, y);
 
+        }
+
+    }
+
+    @Override
+    public void onToggleFlag(int x, int y) {
+        log.debug("Try to toggle flag at ({}, {})", x, y);
+        if (gameState == GameState.LOSE || gameState == GameState.WIN) {
+            return;
+        }
+
+        Cell curCell = field[y][x];
+
+        if (curCell.isOpen()) {
+            return;
+        }
+
+        if (curCell.isFlagged()) {
+            curCell.setFlagged(false);
+            flagsCount--;
+        } else {
+            curCell.setFlagged(true);
+            flagsCount++;
+        }
+        var newState = curCell.isFlagged() ? CellState.FLAG : CellState.CLOSED;
+        curCell.setState(newState);
+        fieldEventListener.onChangeCellState(x, y, newState);
+        sendUpdBombsCount();
+    }
+
+    @Override
+    public void onOpenCellsAround(int x, int y) {
+        log.debug("Try to open cells around ({}, {})", x, y);
+        if (gameState != GameState.PLAY) {
+            return;
+        }
+        var cell = field[y][x];
+        var cellsAround = findAllCellsAround(cell);
+        var bombsAroundCount = countFromCells(cellsAround, Cell::isBomb);
+
+        if (cell.isClosed() || bombsAroundCount == 0) {
+            return;
+        }
+
+        var flagsAroundCount = countFromCells(cellsAround, Cell::isFlagged);
+        var closedCellsAroundCount = countFromCells(cellsAround, Cell::isClosed);
+
+        if (flagsAroundCount != bombsAroundCount || closedCellsAroundCount == flagsAroundCount) {
+            return;
+        }
+
+        for (var nextCell : findFromCells(cellsAround, c -> c.isClosed() && !c.isFlagged())) {
+            openCell(nextCell);
         }
 
     }
@@ -60,8 +111,38 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
         setupBombs(x, y);
         gameState = GameState.PLAY;
         openCell(x, y);
+    }
 
+    @Override
+    public void onGameTypeSelected(GameType gameType) {
+        this.gameType = (gameType == GameType.PREVIOUS) ? this.gameType : gameType;
+        log.debug("Game type selected: {}", this.gameType);
+        gameTypeListener.onGameTypeSelected(this.gameType);
+        fieldEventListener.onFieldSetup(this.gameType);
+        setupGameData();
+    }
 
+    private void setupGameData() {
+        log.debug("Game data setup");
+        setupField();
+        closedCellsCount = gameType.rows * gameType.cols - gameType.bombsN;
+        flagsCount = 0;
+        gameState = GameState.STOP;
+
+    }
+
+    private void setupField() {
+        log.debug("Setup new field with size {}x{}", gameType.rows, gameType.cols);
+        int rows = gameType.rows;
+        int cols = gameType.cols;
+        field = new Cell[rows][cols];
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                var newCell = new Cell(x, y);
+                newCell.setState(CellState.CLOSED);
+                field[y][x] = newCell;
+            }
+        }
     }
 
     private void setupBombs(int startPosX, int startPosY) {
@@ -83,7 +164,9 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
             int y = idx / cols;
             int x = idx % cols;
             field[y][x].setBomb(true);
-            fieldEventListener.onChangeCellState(x, y, CellState.BOMB); // FIXME: Delete to disable hack
+            field[y][x].setState(CellState.BOMB);
+            fieldEventListener.onChangeCellState(x, y,
+                    CellState.BOMB); // FIXME: Delete to disable hack
         });
 
         if (bombIndexes.contains(startIdx)) {
@@ -93,19 +176,26 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
         log.debug("Bombs setup finished");
     }
 
-
     private void openCell(int x, int y) {
         Cell cell = field[y][x];
+        openCell(cell);
+    }
+
+    private void openCell(Cell cell) {
         if (cell.isOpen() || cell.isFlagged()) {
-            log.debug("Cell ({}, {}) is already open or flagged", x, y);
+            log.debug("Cell ({}, {}) is already open or flagged", cell.getX(), cell.getY());
             return;
         }
         if (cell.isBomb()) {
-            log.debug("Cell ({}, {}) is a bomb", x, y);
+            log.debug("Cell ({}, {}) is a bomb, you lose", cell.getX(), cell.getY());
             // TODO: Lose game
             return;
         }
 
+        openCellUnsafe(cell);
+    }
+
+    private void openCellUnsafe(Cell cell) {
         Stack<Cell> stack = new Stack<>();
         stack.push(cell);
 
@@ -118,34 +208,61 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
             }
 
             curCell.setOpen(true);
-            var cellsAround = getCellsAround(curCell);
-            int bombsCount = getBombsCount(cellsAround);
+            var cellsAround = findAllCellsAround(curCell);
+            int bombsCount = countFromCells(cellsAround, Cell::isBomb);
             var newStateForCell = CellState.fromAlias(
                     String.valueOf(
                             bombsCount
                     )
             );
+            curCell.setState(newStateForCell);
             changes.add(new CellStateChange(curCell.getX(), curCell.getY(), newStateForCell));
             if (bombsCount > 0) {
                 continue;
             }
 
             cellsAround.forEach(c -> {
-                if (!c.isFlagged()) {
-                    stack.push(c);
-                }
+                stack.push(c);
+                // Need if we want to ignore flagged cells
+//                if (!c.isFlagged()) {
+//                }
             });
         }
 
         fieldEventListener.onBatchChangeCellState(changes);
         if ((closedCellsCount -= changes.size()) == 0) {
+            log.debug("All cells opened, you win!");
             // TODO: Win game
         }
-
     }
 
-    private List<Cell> getCellsAround(Cell cell) {
+    private void sendUpdBombsCount() {
+        var bombsCount = gameType.bombsN - flagsCount;
+        fieldEventListener.onChangeBombsCount(Math.max(bombsCount, 0));
+    }
+
+    private boolean isInBounds(int x, int y) {
+        return x >= 0 && x < gameType.cols && y >= 0 && y < gameType.rows;
+    }
+
+    private List<Cell> findAllCellsAround(Cell cell) {
+        return findCellsAround(cell, c -> true);
+    }
+
+    private List<Cell> findCellsAround(Cell cell, Predicate<Cell> cellPredicate) {
         List<Cell> cells = new ArrayList<>(8);
+
+        forEachCellAround(cell, (x, y) -> {
+            var curCell = field[y][x];
+            if (cellPredicate.test(curCell)) {
+                cells.add(curCell);
+            }
+        });
+
+        return cells;
+    }
+
+    private void forEachCellAround(Cell cell, BiConsumer<Integer, Integer> action) {
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i == 0 && j == 0) {
@@ -153,68 +270,23 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
                 }
                 int newX = cell.getX() + i;
                 int newY = cell.getY() + j;
-                if (!isOutOfBounds(newX, newY)) {
-                    cells.add(field[newY][newX]);
+                if (isInBounds(newX, newY)) {
+                    action.accept(newX, newY);
                 }
             }
         }
-        return cells;
     }
 
-    private int getBombsCount(List<Cell> cells) {
-        return (int) cells.stream().filter(Cell::isBomb).count();
+    private List<Cell> findFromCells(List<Cell> cells, Predicate<Cell> cellPredicate) {
+        return cells.stream()
+                .filter(cellPredicate)
+                .collect(Collectors.toList());
     }
 
-
-    private boolean isOutOfBounds(int x, int y) {
-        return x < 0 || x >= gameType.cols || y < 0 || y >= gameType.rows;
+    private int countFromCells(List<Cell> cells, Predicate<Cell> cellPredicate) {
+        return (int) cells.stream()
+                .filter(cellPredicate)
+                .count();
     }
-
-    @Override
-    public void onToggleFlag(int x, int y) {
-        log.debug("Flag toggled at ({}, {})", x, y);
-        fieldEventListener.onChangeCellState(x, y, CellState.FLAG);
-    }
-
-    @Override
-    public void onOpenCellsAround(int x, int y) {
-        log.debug("Cells opened around ({}, {})", x, y);
-    }
-
-
-    @Override
-    public void onGameTypeSelected(GameType gameType) {
-        this.gameType = (gameType == GameType.PREVIOUS) ? this.gameType : gameType;
-        log.debug("Game type selected: {}", this.gameType);
-        gameTypeListener.onGameTypeSelected(this.gameType);
-        fieldEventListener.onFieldSetup(this.gameType);
-        setupGameData();
-    }
-
-    private void setupGameData() {
-        log.debug("Game data setup");
-        setupField();
-        closedCellsCount = gameType.rows * gameType.cols - gameType.bombsN;
-        flagsCount = 0;
-        gameState = GameState.STOP;
-
-    }
-
-    private void updBombsCount() {
-        fieldEventListener.onChangeBombsCount(gameType.bombsN - flagsCount);
-    }
-
-    private void setupField() {
-        log.debug("Setup new field with size {}x{}", gameType.rows, gameType.cols);
-        int rows = gameType.rows;
-        int cols = gameType.cols;
-        field = new Cell[rows][cols];
-        for (int y = 0; y < rows; y++) {
-            for (int x = 0; x < cols; x++) {
-                field[y][x] = new Cell(x, y);
-            }
-        }
-    }
-
 
 }
