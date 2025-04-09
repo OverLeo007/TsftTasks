@@ -12,28 +12,44 @@ import java.util.stream.IntStream;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.listeners.CM_FieldEventListener;
-import ru.shift.controller.listeners.CM_GameTypeListener;
-import ru.shift.model.GameType;
+import ru.shift.controller.listeners.CM_NewGameListener;
+import ru.shift.model.GameDifficulty;
+import ru.shift.model.listeners.MV_EndGameListener;
 import ru.shift.model.listeners.MV_FiledEventListener;
-import ru.shift.model.listeners.MV_GameTypeListener;
+import ru.shift.model.listeners.MV_NewGameListener;
+import ru.shift.model.state.GameState;
+import ru.shift.model.state.GameStateManager;
+import ru.shift.model.timer.Timer;
 
 @Slf4j
-public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
+public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
 
     private final MV_FiledEventListener fieldEventListener;
-    private final MV_GameTypeListener gameTypeListener;
+    private final MV_NewGameListener gameTypeListener;
+
+
+    private final GameStateManager gameStateManager;
 
     @Builder
-    public FieldModel(MV_FiledEventListener fieldEventListener,
-            MV_GameTypeListener gameTypeListener) {
+    private CoreModel(
+            MV_FiledEventListener fieldEventListener,
+            MV_NewGameListener gameTypeListener,
+            Timer timer,
+            MV_EndGameListener winListener,
+            MV_EndGameListener loseListener
+    ) {
         this.fieldEventListener = fieldEventListener;
         this.gameTypeListener = gameTypeListener;
+        this.gameStateManager = GameStateManager.builder()
+                .timer(timer)
+                .winListener(winListener)
+                .loseListener(loseListener)
+                .build();
     }
 
-    private GameType gameType = GameType.NOVICE;
-    private GameState gameState = GameState.STOP;
-    private final Random random = new Random(42);
-
+    private GameDifficulty gameDifficulty = GameDifficulty.NOVICE;
+//    private GameState gameState = GameState.STOP;
+    private final Random random = new Random(42); // TODO: Remove seed
 
     private Cell[][] field;
 
@@ -43,12 +59,11 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
 
     @Override
     public void onOpenCell(int x, int y) {
-        log.debug("Try to open cell at ({}, {})", x, y);
+        log.debug("Try to open cell at ({}, {}) {}", x, y, gameStateManager.getState());
 
-        switch (gameState) {
+        switch (gameStateManager.getState()) {
             case STOP -> startGameFrom(x, y);
             case PLAY -> openCell(x, y);
-
         }
 
     }
@@ -56,7 +71,9 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
     @Override
     public void onToggleFlag(int x, int y) {
         log.debug("Try to toggle flag at ({}, {})", x, y);
-        if (gameState == GameState.LOSE || gameState == GameState.WIN) {
+        if (gameStateManager.compareState(
+                state -> state == GameState.LOSE || state == GameState.WIN
+        )) {
             return;
         }
 
@@ -74,7 +91,6 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
             flagsCount++;
         }
         var newState = curCell.isFlagged() ? CellState.FLAG : CellState.CLOSED;
-        curCell.setState(newState);
         fieldEventListener.onChangeCellState(x, y, newState);
         sendUpdBombsCount();
     }
@@ -82,7 +98,7 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
     @Override
     public void onOpenCellsAround(int x, int y) {
         log.debug("Try to open cells around ({}, {})", x, y);
-        if (gameState != GameState.PLAY) {
+        if (gameStateManager.compareState(state -> state != GameState.PLAY)) {
             return;
         }
         var cell = field[y][x];
@@ -101,7 +117,9 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
         }
 
         for (var nextCell : findFromCells(cellsAround, c -> c.isClosed() && !c.isFlagged())) {
-            openCell(nextCell);
+            if (gameStateManager.compareState(state -> state == GameState.PLAY)) {
+                openCell(nextCell);
+            }
         }
 
     }
@@ -109,46 +127,50 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
     private void startGameFrom(int x, int y) {
         log.debug("Game started from ({}, {})", x, y);
         setupBombs(x, y);
-        gameState = GameState.PLAY;
+        gameStateManager.setState(GameState.PLAY);
         openCell(x, y);
     }
 
     @Override
-    public void onGameTypeSelected(GameType gameType) {
-        this.gameType = (gameType == GameType.PREVIOUS) ? this.gameType : gameType;
-        log.debug("Game type selected: {}", this.gameType);
-        gameTypeListener.onGameTypeSelected(this.gameType);
-        fieldEventListener.onFieldSetup(this.gameType);
-        setupGameData();
+    public void onGameTypeSelected(GameDifficulty gameDifficulty) {
+        this.gameDifficulty = gameDifficulty;
+        log.debug("Game type selected: {}", this.gameDifficulty);
+        gameTypeListener.onGameTypeSelected(this.gameDifficulty);
+        setupNewGame();
     }
 
-    private void setupGameData() {
-        log.debug("Game data setup");
-        setupField();
-        closedCellsCount = gameType.rows * gameType.cols - gameType.bombsN;
-        flagsCount = 0;
-        gameState = GameState.STOP;
-
+    @Override
+    public void onNewGame() {
+        setupNewGame();
     }
 
-    private void setupField() {
-        log.debug("Setup new field with size {}x{}", gameType.rows, gameType.cols);
-        int rows = gameType.rows;
-        int cols = gameType.cols;
+    private void setupNewGame() {
+        log.debug("Setup new field with size {}x{}", this.gameDifficulty.rows, this.gameDifficulty.cols);
+        fieldEventListener.onFieldSetup(this.gameDifficulty);
+
+        int rows = this.gameDifficulty.rows;
+        int cols = this.gameDifficulty.cols;
         field = new Cell[rows][cols];
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < cols; x++) {
                 var newCell = new Cell(x, y);
-                newCell.setState(CellState.CLOSED);
                 field[y][x] = newCell;
             }
         }
+        log.debug("Game data setup");
+
+        closedCellsCount = this.gameDifficulty.rows * this.gameDifficulty.cols - this.gameDifficulty.bombsN;
+        flagsCount = 0;
+        gameStateManager.setState(GameState.STOP);
+
+        log.debug("New game is ready");
     }
+
 
     private void setupBombs(int startPosX, int startPosY) {
         log.debug("Bombs setup started");
-        int rows = gameType.rows;
-        int cols = gameType.cols;
+        int rows = gameDifficulty.rows;
+        int cols = gameDifficulty.cols;
         int startIdx = startPosY * cols + startPosX;
 
         List<Integer> bombIndexes = IntStream.range(0, rows * cols)
@@ -157,14 +179,12 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
                 .collect(Collectors.toList());
 
         Collections.shuffle(bombIndexes, random);
-        bombIndexes = bombIndexes.subList(0, gameType.bombsN);
+        bombIndexes = bombIndexes.subList(0, gameDifficulty.bombsN);
 
-        // Устанавливаем бомбы
         bombIndexes.forEach(idx -> {
             int y = idx / cols;
             int x = idx % cols;
             field[y][x].setBomb(true);
-            field[y][x].setState(CellState.BOMB);
             fieldEventListener.onChangeCellState(x, y,
                     CellState.BOMB); // FIXME: Delete to disable hack
         });
@@ -188,7 +208,7 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
         }
         if (cell.isBomb()) {
             log.debug("Cell ({}, {}) is a bomb, you lose", cell.getX(), cell.getY());
-            // TODO: Lose game
+            endGame(GameState.LOSE);
             return;
         }
 
@@ -215,7 +235,6 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
                             bombsCount
                     )
             );
-            curCell.setState(newStateForCell);
             changes.add(new CellStateChange(curCell.getX(), curCell.getY(), newStateForCell));
             if (bombsCount > 0) {
                 continue;
@@ -232,17 +251,35 @@ public class FieldModel implements CM_FieldEventListener, CM_GameTypeListener {
         fieldEventListener.onBatchChangeCellState(changes);
         if ((closedCellsCount -= changes.size()) == 0) {
             log.debug("All cells opened, you win!");
-            // TODO: Win game
+            endGame(GameState.WIN);
         }
     }
 
+    private void endGame(GameState endState) {
+        gameStateManager.setState(endState);
+        showBombs();
+    }
+
+    private void showBombs() {
+        List<CellStateChange> changes = new ArrayList<>();
+        for (int y = 0; y < gameDifficulty.rows; y++) {
+            for (int x = 0; x < gameDifficulty.cols; x++) {
+                Cell cell = field[y][x];
+                if (cell.isBomb()) {
+                    changes.add(new CellStateChange(x, y, CellState.BOMB));
+                }
+            }
+        }
+        fieldEventListener.onBatchChangeCellState(changes);
+    }
+
     private void sendUpdBombsCount() {
-        var bombsCount = gameType.bombsN - flagsCount;
+        var bombsCount = gameDifficulty.bombsN - flagsCount;
         fieldEventListener.onChangeBombsCount(Math.max(bombsCount, 0));
     }
 
     private boolean isInBounds(int x, int y) {
-        return x >= 0 && x < gameType.cols && y >= 0 && y < gameType.rows;
+        return x >= 0 && x < gameDifficulty.cols && y >= 0 && y < gameDifficulty.rows;
     }
 
     private List<Cell> findAllCellsAround(Cell cell) {

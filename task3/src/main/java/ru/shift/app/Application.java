@@ -1,71 +1,73 @@
 package ru.shift.app;
 
 
-import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.FieldEventController;
-import ru.shift.controller.SettingsController;
-import ru.shift.model.field.FieldModel;
-import ru.shift.model.GameType;
+import ru.shift.controller.NewGameController;
+import ru.shift.model.field.CoreModel;
+import ru.shift.model.timer.Timer;
+import ru.shift.view.observers.LoseWindowObserver;
 import ru.shift.view.observers.MainWindowObserver;
+import ru.shift.view.observers.WinWindowObserver;
 import ru.shift.view.windows.HighScoresWindow;
+import ru.shift.view.windows.LoseWindow;
+import ru.shift.view.windows.MainWindow;
 import ru.shift.view.windows.SettingsWindow;
-// TODO: не увлекаться стримингом
-//
+import ru.shift.view.windows.WinWindow;
+
 @Slf4j
 public class Application {
 
-    Thread mainThread = Thread.currentThread();
-    AtomicInteger a = new AtomicInteger(0);
+    private final MainWindow mainWindow = new MainWindow();
+    private final WinWindow winWindow = new WinWindow(mainWindow);
+    private final LoseWindow loseWindow = new LoseWindow(mainWindow);
 
-    private final MainWindowObserver mainWindow = new MainWindowObserver();
+    private final MainWindowObserver mainWindowObserver = new MainWindowObserver(mainWindow);
+
     private final SettingsWindow settingsWindow = new SettingsWindow(mainWindow);
 
-    private final FieldModel fieldModel = FieldModel.builder()
-            .fieldEventListener(mainWindow)
-            .gameTypeListener(settingsWindow)
-            .build();
-    private final FieldEventController fieldEventController = new FieldEventController(fieldModel);
 
-    private final SettingsController settingsController = new SettingsController(fieldModel);
+
+    private final CoreModel coreModel = CoreModel.builder()
+            .fieldEventListener(mainWindowObserver)
+            .gameTypeListener(settingsWindow)
+            .timer(new Timer(mainWindowObserver))
+            .winListener(new WinWindowObserver(winWindow))
+            .loseListener(new LoseWindowObserver(loseWindow))
+            .build();
+
+    private final FieldEventController fieldEventController = new FieldEventController(coreModel);
+
+    private final NewGameController newGameController = new NewGameController(coreModel);
 
     private final HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
-
-//    private final WinWindow winWindow = new WinWindow(mainWindow);
-//    private final LoseWindow loseWindow = new LoseWindow(mainWindow);
 
 
     public static void main(String[] args) {
         var app = new Application();
 
         app.bindListenersToView();
-
-        app.mainWindow.setSettingsMenuAction(e -> app.settingsWindow.setVisible(true));
-        app.mainWindow.setHighScoresMenuAction(e -> app.highScoresWindow.setVisible(true));
-
-        app.mainWindow.createGameField(9, 9);
-        app.fieldModel.onGameTypeSelected(GameType.PREVIOUS);
+        app.newGameController.onNewGame();
         app.mainWindow.setVisible(true);
 
-//        mainWindow.setTimerValue(145);
-//        mainWindow.setBombsCount(45);
-//        mainWindow.setCellImage(0, 0, GameImage.EMPTY);
-//        mainWindow.setCellImage(0, 1, GameImage.CLOSED);
-//        mainWindow.setCellImage(0, 2, GameImage.MARKED);
-//        mainWindow.setCellImage(0, 3, GameImage.BOMB);
-//        mainWindow.setCellImage(1, 0, GameImage.NUM_1);
-//        mainWindow.setCellImage(1, 1, GameImage.NUM_2);
-//        mainWindow.setCellImage(1, 2, GameImage.NUM_3);
-//        mainWindow.setCellImage(1, 3, GameImage.NUM_4);
-//        mainWindow.setCellImage(1, 4, GameImage.NUM_5);
-//        mainWindow.setCellImage(1, 5, GameImage.NUM_6);
-//        mainWindow.setCellImage(1, 6, GameImage.NUM_7);
-//        mainWindow.setCellImage(1, 7, GameImage.NUM_8);
     }
 
     private void bindListenersToView() {
+        mainWindow.setSettingsMenuAction(e -> settingsWindow.setVisible(true));
+        mainWindow.setHighScoresMenuAction(e -> highScoresWindow.setVisible(true));
+
         mainWindow.setFieldEventListener(fieldEventController);
-        mainWindow.setGameTypeListener(settingsController);
-        settingsWindow.setGameTypeListener(settingsController);
+
+        mainWindow.setNewGameListener(newGameController);
+
+        settingsWindow.setGameTypeListener(newGameController);
+
+        winWindow.setNewGameListener(e -> newGameController.onNewGame());
+        winWindow.setExitListener(e -> mainWindow.dispose());
+
+        loseWindow.setNewGameListener(e -> newGameController.onNewGame());
+        loseWindow.setExitListener(e -> mainWindow.dispose());
+
+
     }
 }

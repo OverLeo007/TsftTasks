@@ -4,19 +4,21 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.model.listeners.MV_GameTypeListener;
-import ru.shift.model.GameType;
-import ru.shift.view.listeners.VC_GameTypeListener;
+import ru.shift.model.listeners.MV_NewGameListener;
+import ru.shift.model.GameDifficulty;
+import ru.shift.view.listeners.VC_NewGameListener;
 
 @Slf4j
-public class SettingsWindow extends JDialog implements MV_GameTypeListener {
+public class SettingsWindow extends JDialog implements MV_NewGameListener {
 
-    private final Map<GameType, JRadioButton> radioButtonsMap = new HashMap<>(3);
+    private final Map<GameDifficulty, JRadioButton> radioButtonsMap = new HashMap<>(3);
     private final ButtonGroup radioGroup = new ButtonGroup();
 
-    private VC_GameTypeListener gameTypeListener;
-    private GameType gameType;
+    @Setter
+    private VC_NewGameListener gameTypeListener;
+    private GameDifficulty gameDifficulty;
 
     public SettingsWindow(JFrame owner) {
         super(owner, "Settings", true);
@@ -27,11 +29,11 @@ public class SettingsWindow extends JDialog implements MV_GameTypeListener {
 
         int gridY = 0;
         contentPane.add(
-                createRadioButton("Novice (10 mines, 9х9)", GameType.NOVICE, layout, gridY++));
+                createRadioButton("Novice (10 mines, 9х9)", GameDifficulty.NOVICE, layout, gridY++));
         contentPane.add(
-                createRadioButton("Medium (40 mines, 16х16)", GameType.MEDIUM, layout, gridY++));
+                createRadioButton("Medium (40 mines, 16х16)", GameDifficulty.MEDIUM, layout, gridY++));
         contentPane.add(
-                createRadioButton("Expert (99 mines, 16х30)", GameType.EXPERT, layout, gridY++));
+                createRadioButton("Expert (99 mines, 16х30)", GameDifficulty.EXPERT, layout, gridY));
 
         contentPane.add(createOkButton(layout));
         contentPane.add(createCloseButton(layout));
@@ -42,29 +44,24 @@ public class SettingsWindow extends JDialog implements MV_GameTypeListener {
         pack();
         setLocationRelativeTo(null);
 
-        setGameType(GameType.NOVICE);
+        setGameType(GameDifficulty.NOVICE);
     }
 
-    public void setGameType(GameType gameType) {
-        JRadioButton radioButton = radioButtonsMap.get(gameType);
+    public void setGameType(GameDifficulty gameDifficulty) {
+        JRadioButton radioButton = radioButtonsMap.get(gameDifficulty);
 
         if (radioButton == null) {
-            throw new UnsupportedOperationException("Unknown game type: " + gameType);
+            throw new UnsupportedOperationException("Unknown game type: " + gameDifficulty);
         }
 
-        this.gameType = gameType;
+        this.gameDifficulty = gameDifficulty;
         radioGroup.setSelected(radioButton.getModel(), true);
     }
 
-    @SuppressWarnings("LombokSetterMayBeUsed")
-    public void setGameTypeListener(VC_GameTypeListener gameTypeListener) {
-        this.gameTypeListener = gameTypeListener;
-    }
-
-    private JRadioButton createRadioButton(String radioButtonText, GameType gameType,
+    private JRadioButton createRadioButton(String radioButtonText, GameDifficulty gameDifficulty,
             GridBagLayout layout, int gridY) {
         JRadioButton radioButton = new JRadioButton(radioButtonText);
-        radioButton.addActionListener(e -> this.gameType = gameType);
+        radioButton.addActionListener(e -> this.gameDifficulty = gameDifficulty);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
@@ -76,7 +73,7 @@ public class SettingsWindow extends JDialog implements MV_GameTypeListener {
         gbc.insets = new Insets(0, 20, 0, 0);
         layout.setConstraints(radioButton, gbc);
 
-        radioButtonsMap.put(gameType, radioButton);
+        radioButtonsMap.put(gameDifficulty, radioButton);
         radioGroup.add(radioButton);
 
         return radioButton;
@@ -89,7 +86,7 @@ public class SettingsWindow extends JDialog implements MV_GameTypeListener {
             dispose();
 
             if (gameTypeListener != null) {
-                gameTypeListener.onGameTypeChanged(gameType);
+                gameTypeListener.onGameTypeChanged(gameDifficulty);
             }
         });
 
@@ -125,7 +122,7 @@ public class SettingsWindow extends JDialog implements MV_GameTypeListener {
     }
 
     @Override
-    public void onGameTypeSelected(GameType gameType) {
-        setGameType(gameType);
+    public void onGameTypeSelected(GameDifficulty gameDifficulty) {
+        setGameType(gameDifficulty);
     }
 }

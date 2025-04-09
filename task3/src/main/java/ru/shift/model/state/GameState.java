@@ -1,4 +1,4 @@
-package ru.shift.model.field;
+package ru.shift.model.state;
 
 public enum GameState {
     STOP,

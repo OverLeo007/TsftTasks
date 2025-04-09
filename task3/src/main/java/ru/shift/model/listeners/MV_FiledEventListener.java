@@ -4,7 +4,7 @@ import java.util.List;
 import ru.shift.controller.listeners.CM_FieldEventListener;
 import ru.shift.model.field.CellState;
 import ru.shift.model.field.CellStateChange;
-import ru.shift.model.GameType;
+import ru.shift.model.GameDifficulty;
 import ru.shift.view.listeners.VC_FieldEventListener;
 
 /**
@@ -18,7 +18,7 @@ public interface MV_FiledEventListener {
 
     void onChangeCellState(int x, int y, CellState cellState);
 
-    void onFieldSetup(GameType gameType);
+    void onFieldSetup(GameDifficulty gameDifficulty);
 
     void onChangeBombsCount(int count);
 

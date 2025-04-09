@@ -22,26 +22,21 @@ import javax.swing.WindowConstants;
 import lombok.Setter;
 import ru.shift.view.ButtonType;
 import ru.shift.view.GameImage;
-import ru.shift.model.GameType;
 import ru.shift.view.listeners.VC_FieldEventListener;
-import ru.shift.view.listeners.VC_GameTypeListener;
+import ru.shift.view.listeners.VC_NewGameListener;
 
 public class MainWindow extends JFrame  {
 
     @Setter
     private VC_FieldEventListener fieldEventListener;
     @Setter
-    private VC_GameTypeListener gameTypeListener;
-
-
+    private VC_NewGameListener newGameListener;
 
     private final Container contentPane;
     private final GridBagLayout mainLayout;
 
-    private JMenuItem newGameMenu;
     private JMenuItem highScoresMenu;
     private JMenuItem settingsMenu;
-    private JMenuItem exitMenu;
 
 
     protected JButton[][] cellButtons;
@@ -49,7 +44,7 @@ public class MainWindow extends JFrame  {
     private JLabel bombsCounterLabel;
 
     public MainWindow() {
-        super("Miner");
+        super("Minesweeper");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
@@ -67,18 +62,22 @@ public class MainWindow extends JFrame  {
 
         JMenu gameMenu = new JMenu("Game");
 
+        JMenuItem newGameMenu;
         gameMenu.add(newGameMenu = new JMenuItem("New Game"));
+
         gameMenu.addSeparator();
         gameMenu.add(highScoresMenu = new JMenuItem("High Scores"));
         gameMenu.add(settingsMenu = new JMenuItem("Settings"));
         gameMenu.addSeparator();
+
+        JMenuItem exitMenu;
         gameMenu.add(exitMenu = new JMenuItem("Exit"));
 
         menuBar.add(gameMenu);
 
         setJMenuBar(menuBar);
 
-        newGameMenu.addActionListener(e -> gameTypeListener.onGameTypeChanged(GameType.PREVIOUS));
+        newGameMenu.addActionListener(e -> newGameListener.onNewGame());
         exitMenu.addActionListener(e -> dispose());
 
     }
@@ -94,6 +93,10 @@ public class MainWindow extends JFrame  {
 
     public void setBombsCount(int bombsCount) {
         bombsCounterLabel.setText(String.valueOf(bombsCount));
+    }
+
+    public void setCellImage(int x, int y, GameImage image) {
+        cellButtons[y][x].setIcon(image.getImageIcon());
     }
 
     public void setTimerValue(int value) {
