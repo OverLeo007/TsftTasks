@@ -46,17 +46,19 @@ public class Application {
             .scoreRepository(scoreRepository)
             .build();
 
-    private final FieldEventController fieldEventController = new FieldEventController(coreModel);
+    private final FieldEventController fieldEventController = new FieldEventController(coreModel, coreModel);
     private final NewGameController newGameController = new NewGameController(coreModel);
 
 
 
     public static void main(String[] args) {
         var app = new Application();
+        boolean isHack = System.getProperty("hack") != null;
 
         app.bindListenersToView();
         app.newGameController.onNewGame();
         app.mainWindow.setVisible(true);
+        app.mainWindow.enableHackMode(isHack);
     }
 
     private void bindListenersToView() {

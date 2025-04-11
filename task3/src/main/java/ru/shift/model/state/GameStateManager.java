@@ -56,10 +56,7 @@ public class GameStateManager {
         switch (state) {
             case STOP -> timer.reset();
             case WIN -> onWinState();
-            case LOSE -> {
-                timer.stop();
-                loseListener.onGameEnd();
-            }
+            case LOSE -> onLoseState();
             case PLAY -> timer.start();
         }
     }
@@ -83,5 +80,10 @@ public class GameStateManager {
             onNewRecordListener.onNewRecord(curTime, savedScore);
         }
         winListener.onGameEnd();
+    }
+
+    private void onLoseState() {
+        timer.stop();
+        loseListener.onGameEnd();
     }
 }

@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -20,11 +21,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import ru.shift.view.ButtonType;
 import ru.shift.view.GameImage;
 import ru.shift.view.listeners.VC_FieldEventListener;
 import ru.shift.view.listeners.VC_NewGameListener;
 
+@Slf4j
 public class MainWindow extends JFrame  {
 
     @Setter
@@ -37,6 +40,8 @@ public class MainWindow extends JFrame  {
 
     private JMenuItem highScoresMenu;
     private JMenuItem settingsMenu;
+
+    private final JMenu gameMenu = new JMenu("Game");
 
 
     protected JButton[][] cellButtons;
@@ -59,8 +64,6 @@ public class MainWindow extends JFrame  {
 
     private void createMenu() {
         JMenuBar menuBar = new JMenuBar();
-
-        JMenu gameMenu = new JMenu("Game");
 
         JMenuItem newGameMenu;
         gameMenu.add(newGameMenu = new JMenuItem("New Game"));
@@ -128,28 +131,7 @@ public class MainWindow extends JFrame  {
                 final int y = row;
 
                 cellButtons[y][x] = new JButton(GameImage.CLOSED.getImageIcon());
-                cellButtons[y][x].addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseReleased(MouseEvent e) {
-                        if (fieldEventListener == null) {
-                            return;
-                        }
-
-                        switch (e.getButton()) {
-                            case MouseEvent.BUTTON1:
-                                fieldEventListener.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
-                                break;
-                            case MouseEvent.BUTTON3:
-                                fieldEventListener.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
-                                break;
-                            case MouseEvent.BUTTON2:
-                                fieldEventListener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
-                                break;
-                            default:
-                                // Other mouse buttons are ignored
-                        }
-                    }
-                });
+                cellButtons[y][x].addMouseListener(createMouseAdapter(x, y));
                 buttonsPanel.add(cellButtons[y][x]);
             }
         }
@@ -212,5 +194,62 @@ public class MainWindow extends JFrame  {
         gbc.weightx = 0.1;
         mainLayout.setConstraints(label, gbc);
         contentPane.add(label);
+    }
+
+    private MouseAdapter createMouseAdapter(int x, int y) {
+        return new MouseAdapter() {
+
+            private boolean isButton1Pressed = false;
+            private boolean isButton3Pressed = false;
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    isButton1Pressed = true;
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    isButton3Pressed = true;
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (fieldEventListener == null) {
+                    return;
+                }
+                if (isButton1Pressed && isButton3Pressed) {
+                    fieldEventListener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
+                }  else {
+                    switch (e.getButton()) {
+                        case MouseEvent.BUTTON1 ->
+                            fieldEventListener.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
+                        case MouseEvent.BUTTON2 ->
+                            fieldEventListener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
+                        case MouseEvent.BUTTON3 ->
+                            fieldEventListener.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
+                        default -> {
+                            // Other mouse buttons are ignored
+                        }
+                    }
+                }
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    isButton1Pressed = false;
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    isButton3Pressed = false;
+                }
+            }
+        };
+    }
+
+    public void enableHackMode(boolean isHack) {
+        if (isHack) {
+            JCheckBoxMenuItem showMinesOption = new JCheckBoxMenuItem("Показывать мины");
+            showMinesOption.addActionListener(e -> {
+                boolean selected = showMinesOption.isSelected();
+                if (fieldEventListener != null) {
+                    fieldEventListener.onHackStateChanged(selected);
+                }
+            });
+            gameMenu.add(showMinesOption, 1);
+        }
     }
 }

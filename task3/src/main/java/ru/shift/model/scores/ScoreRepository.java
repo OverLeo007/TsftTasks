@@ -104,7 +104,10 @@ public class ScoreRepository implements CM_ScoreRecordListener {
     @Override
     public void onNewScore(String name) {
         log.debug("New score: {} {}", name, heldTime);
-        // TODO: validate name
+        if (!isValidName(name)) {
+            log.warn("Invalid name: {}", name);
+            return;
+        }
         if (heldGameDifficulty != null) {
             Score newScore = new Score(name, heldTime);
             addScore(newScore, heldGameDifficulty);
@@ -112,5 +115,12 @@ public class ScoreRepository implements CM_ScoreRecordListener {
             heldTime = 0;
         }
 
+    }
+
+    private boolean isValidName(String name) {
+        if (name == null || name.isBlank()) {
+            return false;
+        }
+        return name.length() <= 120;
     }
 }

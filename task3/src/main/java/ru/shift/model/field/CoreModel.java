@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.listeners.CM_FieldEventListener;
 import ru.shift.controller.listeners.CM_NewGameListener;
+import ru.shift.controller.listeners.CM_onToggleBombsVisibilityListener;
 import ru.shift.model.GameDifficulty;
 import ru.shift.model.listeners.MV_EndGameListener;
 import ru.shift.model.listeners.MV_FiledEventListener;
@@ -24,7 +25,8 @@ import ru.shift.model.state.GameStateManager;
 import ru.shift.model.timer.Timer;
 
 @Slf4j
-public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
+public class CoreModel implements CM_FieldEventListener, CM_NewGameListener,
+        CM_onToggleBombsVisibilityListener {
 
     private final MV_FiledEventListener fieldEventListener;
     private final MV_NewGameListener gameTypeListener;
@@ -39,12 +41,14 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     private int cols = GameDifficulty.NOVICE.cols;
     private int bombsN = GameDifficulty.NOVICE.bombsN;
 
-    private final Random random = new Random(42); // TODO: Remove seed
+    private final Random random = new Random(42);
     private Cell[][] field;
 
     private int flagsCount = 0;
 
     private int closedCellsCount = 0;
+
+    private boolean isBombsVisible = false;
 
     @Builder
     private CoreModel(
@@ -200,14 +204,14 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
             int y = idx / cols;
             int x = idx % cols;
             field[y][x].setBomb(true);
-            fieldEventListener.onChangeCellState(x, y,
-                    CellState.BOMB); // FIXME: Delete to disable hack
         });
 
         if (bombIndexes.contains(startIdx)) {
             log.warn("Fucked up at {}", startIdx);
         }
-
+        if (isBombsVisible) {
+            showBombs();
+        }
         log.debug("Bombs setup finished");
     }
 
@@ -286,6 +290,23 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
         fieldEventListener.onBatchChangeCellState(changes);
     }
 
+    private void hideBombs() {
+        List<CellStateChange> changes = new ArrayList<>();
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                Cell cell = field[y][x];
+                if (cell.isBomb()) {
+                    if (cell.isFlagged()) {
+                        changes.add(new CellStateChange(x, y, CellState.FLAG));
+                    } else {
+                        changes.add(new CellStateChange(x, y, CellState.CLOSED));
+                    }
+                }
+            }
+        }
+        fieldEventListener.onBatchChangeCellState(changes);
+    }
+
     private void sendUpdBombsCount() {
         var bombsCount = bombsN - flagsCount;
         fieldEventListener.onChangeBombsCount(bombsCount);
@@ -337,5 +358,16 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
         return (int) cells.stream()
                 .filter(cellPredicate)
                 .count();
+    }
+
+    @Override
+    public void onToggleBombsVisibility(boolean isVisible) {
+        if (isVisible) {
+            isBombsVisible = true;
+            showBombs();
+        } else {
+            isBombsVisible = false;
+            hideBombs();
+        }
     }
 }
