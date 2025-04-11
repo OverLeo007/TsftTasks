@@ -1,6 +1,6 @@
 package ru.shift.view.listeners;
 
-public interface RecordNameListener {
+public interface VC_ScoreRecordListener {
 
     void onRecordNameEntered(String name);
 }

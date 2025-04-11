@@ -15,7 +15,6 @@ import ru.shift.view.listeners.VC_FieldEventListener;
  * - {@link VC_FieldEventListener}
  */
 public interface MV_FiledEventListener {
-
     void onChangeCellState(int x, int y, CellState cellState);
 
     void onFieldSetup(GameDifficulty gameDifficulty);

@@ -4,10 +4,14 @@ package ru.shift.app;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.FieldEventController;
 import ru.shift.controller.NewGameController;
+import ru.shift.controller.ScoreRecordController;
 import ru.shift.model.field.CoreModel;
+import ru.shift.model.scores.ScoreRepository;
 import ru.shift.model.timer.Timer;
+import ru.shift.view.observers.HighScoresWindowObserver;
 import ru.shift.view.observers.LoseWindowObserver;
 import ru.shift.view.observers.MainWindowObserver;
+import ru.shift.view.observers.RecordWindowObserver;
 import ru.shift.view.observers.WinWindowObserver;
 import ru.shift.view.windows.HighScoresWindow;
 import ru.shift.view.windows.LoseWindow;
@@ -21,12 +25,16 @@ public class Application {
     private final MainWindow mainWindow = new MainWindow();
     private final WinWindow winWindow = new WinWindow(mainWindow);
     private final LoseWindow loseWindow = new LoseWindow(mainWindow);
+    private final HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
+
 
     private final MainWindowObserver mainWindowObserver = new MainWindowObserver(mainWindow);
+    private final HighScoresWindowObserver highScoresWindowObserver = new HighScoresWindowObserver(highScoresWindow);
 
     private final SettingsWindow settingsWindow = new SettingsWindow(mainWindow);
+    private final ScoreRepository scoreRepository = new ScoreRepository(highScoresWindowObserver);
 
-
+    private final ScoreRecordController scoreRecordController = new ScoreRecordController(scoreRepository);
 
     private final CoreModel coreModel = CoreModel.builder()
             .fieldEventListener(mainWindowObserver)
@@ -34,13 +42,13 @@ public class Application {
             .timer(new Timer(mainWindowObserver))
             .winListener(new WinWindowObserver(winWindow))
             .loseListener(new LoseWindowObserver(loseWindow))
+            .newRecordListener(new RecordWindowObserver(mainWindow, scoreRecordController))
+            .scoreRepository(scoreRepository)
             .build();
 
     private final FieldEventController fieldEventController = new FieldEventController(coreModel);
-
     private final NewGameController newGameController = new NewGameController(coreModel);
 
-    private final HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
 
 
     public static void main(String[] args) {
@@ -49,7 +57,6 @@ public class Application {
         app.bindListenersToView();
         app.newGameController.onNewGame();
         app.mainWindow.setVisible(true);
-
     }
 
     private void bindListenersToView() {
@@ -67,7 +74,5 @@ public class Application {
 
         loseWindow.setNewGameListener(e -> newGameController.onNewGame());
         loseWindow.setExitListener(e -> mainWindow.dispose());
-
-
     }
 }

@@ -35,7 +35,7 @@ public class HighScoresWindow extends JDialog {
         contentPane.add(mediumRecordLabel = createLabel(DEFAULT_RECORD_TEXT, layout, gridY++, 0));
 
         contentPane.add(createLabel("Expert:", layout, gridY++, 10));
-        contentPane.add(expertRecordLabel = createLabel(DEFAULT_RECORD_TEXT, layout, gridY++, 0));
+        contentPane.add(expertRecordLabel = createLabel(DEFAULT_RECORD_TEXT, layout, gridY, 0));
 
         contentPane.add(createCloseButton(layout));
 
@@ -43,7 +43,7 @@ public class HighScoresWindow extends JDialog {
         setPreferredSize(new Dimension(200, 200));
         setResizable(false);
         pack();
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(owner);
     }
 
     public void setNoviceRecord(String winnerName, int timeValue) {

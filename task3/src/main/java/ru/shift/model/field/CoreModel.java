@@ -17,6 +17,8 @@ import ru.shift.model.GameDifficulty;
 import ru.shift.model.listeners.MV_EndGameListener;
 import ru.shift.model.listeners.MV_FiledEventListener;
 import ru.shift.model.listeners.MV_NewGameListener;
+import ru.shift.model.listeners.MV_OnNewRecordListener;
+import ru.shift.model.scores.ScoreRepository;
 import ru.shift.model.state.GameState;
 import ru.shift.model.state.GameStateManager;
 import ru.shift.model.timer.Timer;
@@ -27,41 +29,49 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     private final MV_FiledEventListener fieldEventListener;
     private final MV_NewGameListener gameTypeListener;
 
+    /** Менеджер состояния игры, имеет сайд эффекты на смену состояния,
+     * знает о текущей сложности игры, управляет репозиторием рекордов и таймером.
+     * В общем занимается событиями происходящими при смене состояния игры.
+     */
+    private final GameStateManager gsm;
 
-    private final GameStateManager gameStateManager;
+    private int rows = GameDifficulty.NOVICE.rows;
+    private int cols = GameDifficulty.NOVICE.cols;
+    private int bombsN = GameDifficulty.NOVICE.bombsN;
 
-    @Builder
-    private CoreModel(
-            MV_FiledEventListener fieldEventListener,
-            MV_NewGameListener gameTypeListener,
-            Timer timer,
-            MV_EndGameListener winListener,
-            MV_EndGameListener loseListener
-    ) {
-        this.fieldEventListener = fieldEventListener;
-        this.gameTypeListener = gameTypeListener;
-        this.gameStateManager = GameStateManager.builder()
-                .timer(timer)
-                .winListener(winListener)
-                .loseListener(loseListener)
-                .build();
-    }
-
-    private GameDifficulty gameDifficulty = GameDifficulty.NOVICE;
-//    private GameState gameState = GameState.STOP;
     private final Random random = new Random(42); // TODO: Remove seed
-
     private Cell[][] field;
 
     private int flagsCount = 0;
 
     private int closedCellsCount = 0;
 
+    @Builder
+    private CoreModel(
+            MV_FiledEventListener fieldEventListener,
+            MV_NewGameListener gameTypeListener,
+            Timer timer,
+            ScoreRepository scoreRepository,
+            MV_EndGameListener loseListener,
+            MV_EndGameListener winListener,
+            MV_OnNewRecordListener newRecordListener
+    ) {
+        this.fieldEventListener = fieldEventListener;
+        this.gameTypeListener = gameTypeListener;
+        this.gsm = GameStateManager.builder()
+                .timer(timer)
+                .winListener(winListener)
+                .loseListener(loseListener)
+                .onNewRecordListener(newRecordListener)
+                .scoreRepository(scoreRepository)
+                .build();
+    }
+
     @Override
     public void onOpenCell(int x, int y) {
-        log.debug("Try to open cell at ({}, {}) {}", x, y, gameStateManager.getState());
+        log.debug("Try to open cell at ({}, {}) in {} game state", x, y, gsm.getState());
 
-        switch (gameStateManager.getState()) {
+        switch (gsm.getState()) {
             case STOP -> startGameFrom(x, y);
             case PLAY -> openCell(x, y);
         }
@@ -71,7 +81,7 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     @Override
     public void onToggleFlag(int x, int y) {
         log.debug("Try to toggle flag at ({}, {})", x, y);
-        if (gameStateManager.compareState(
+        if (gsm.compareState(
                 state -> state == GameState.LOSE || state == GameState.WIN
         )) {
             return;
@@ -87,6 +97,9 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
             curCell.setFlagged(false);
             flagsCount--;
         } else {
+            if (flagsCount >= bombsN) {
+                return;
+            }
             curCell.setFlagged(true);
             flagsCount++;
         }
@@ -98,7 +111,7 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     @Override
     public void onOpenCellsAround(int x, int y) {
         log.debug("Try to open cells around ({}, {})", x, y);
-        if (gameStateManager.compareState(state -> state != GameState.PLAY)) {
+        if (gsm.compareState(state -> state != GameState.PLAY)) {
             return;
         }
         var cell = field[y][x];
@@ -117,7 +130,7 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
         }
 
         for (var nextCell : findFromCells(cellsAround, c -> c.isClosed() && !c.isFlagged())) {
-            if (gameStateManager.compareState(state -> state == GameState.PLAY)) {
+            if (gsm.compareState(state -> state == GameState.PLAY)) {
                 openCell(nextCell);
             }
         }
@@ -127,15 +140,19 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     private void startGameFrom(int x, int y) {
         log.debug("Game started from ({}, {})", x, y);
         setupBombs(x, y);
-        gameStateManager.setState(GameState.PLAY);
+        gsm.setState(GameState.PLAY);
         openCell(x, y);
     }
 
     @Override
     public void onGameTypeSelected(GameDifficulty gameDifficulty) {
-        this.gameDifficulty = gameDifficulty;
-        log.debug("Game type selected: {}", this.gameDifficulty);
-        gameTypeListener.onGameTypeSelected(this.gameDifficulty);
+        this.gsm.setGameDifficulty(gameDifficulty);
+
+        this.rows = gameDifficulty.rows;
+        this.cols = gameDifficulty.cols;
+        this.bombsN = gameDifficulty.bombsN;
+        log.debug("Game type selected: {}", gameDifficulty);
+        gameTypeListener.onGameTypeSelected(gameDifficulty);
         setupNewGame();
     }
 
@@ -145,11 +162,9 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     }
 
     private void setupNewGame() {
-        log.debug("Setup new field with size {}x{}", this.gameDifficulty.rows, this.gameDifficulty.cols);
-        fieldEventListener.onFieldSetup(this.gameDifficulty);
+        log.debug("Setup new field with size {}x{}", rows, cols);
+        fieldEventListener.onFieldSetup(this.gsm.getGameDifficulty());
 
-        int rows = this.gameDifficulty.rows;
-        int cols = this.gameDifficulty.cols;
         field = new Cell[rows][cols];
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < cols; x++) {
@@ -159,9 +174,11 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
         }
         log.debug("Game data setup");
 
-        closedCellsCount = this.gameDifficulty.rows * this.gameDifficulty.cols - this.gameDifficulty.bombsN;
+        closedCellsCount = rows * cols - bombsN;
         flagsCount = 0;
-        gameStateManager.setState(GameState.STOP);
+
+        gsm.setState(GameState.STOP);
+        gsm.setGameDifficulty(this.gsm.getGameDifficulty());
 
         log.debug("New game is ready");
     }
@@ -169,8 +186,6 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
 
     private void setupBombs(int startPosX, int startPosY) {
         log.debug("Bombs setup started");
-        int rows = gameDifficulty.rows;
-        int cols = gameDifficulty.cols;
         int startIdx = startPosY * cols + startPosX;
 
         List<Integer> bombIndexes = IntStream.range(0, rows * cols)
@@ -179,7 +194,7 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
                 .collect(Collectors.toList());
 
         Collections.shuffle(bombIndexes, random);
-        bombIndexes = bombIndexes.subList(0, gameDifficulty.bombsN);
+        bombIndexes = bombIndexes.subList(0, bombsN);
 
         bombIndexes.forEach(idx -> {
             int y = idx / cols;
@@ -227,6 +242,9 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
                 continue;
             }
 
+            if (curCell.isFlagged()) {
+                onToggleFlag(curCell.getX(), curCell.getY());
+            }
             curCell.setOpen(true);
             var cellsAround = findAllCellsAround(curCell);
             int bombsCount = countFromCells(cellsAround, Cell::isBomb);
@@ -240,12 +258,7 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
                 continue;
             }
 
-            cellsAround.forEach(c -> {
-                stack.push(c);
-                // Need if we want to ignore flagged cells
-//                if (!c.isFlagged()) {
-//                }
-            });
+            cellsAround.forEach(stack::push);
         }
 
         fieldEventListener.onBatchChangeCellState(changes);
@@ -256,14 +269,14 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     }
 
     private void endGame(GameState endState) {
-        gameStateManager.setState(endState);
         showBombs();
+        gsm.setState(endState);
     }
 
     private void showBombs() {
         List<CellStateChange> changes = new ArrayList<>();
-        for (int y = 0; y < gameDifficulty.rows; y++) {
-            for (int x = 0; x < gameDifficulty.cols; x++) {
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
                 Cell cell = field[y][x];
                 if (cell.isBomb()) {
                     changes.add(new CellStateChange(x, y, CellState.BOMB));
@@ -274,12 +287,12 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
     }
 
     private void sendUpdBombsCount() {
-        var bombsCount = gameDifficulty.bombsN - flagsCount;
-        fieldEventListener.onChangeBombsCount(Math.max(bombsCount, 0));
+        var bombsCount = bombsN - flagsCount;
+        fieldEventListener.onChangeBombsCount(bombsCount);
     }
 
     private boolean isInBounds(int x, int y) {
-        return x >= 0 && x < gameDifficulty.cols && y >= 0 && y < gameDifficulty.rows;
+        return x >= 0 && x < cols && y >= 0 && y < rows;
     }
 
     private List<Cell> findAllCellsAround(Cell cell) {
@@ -325,5 +338,4 @@ public class CoreModel implements CM_FieldEventListener, CM_NewGameListener {
                 .filter(cellPredicate)
                 .count();
     }
-
 }

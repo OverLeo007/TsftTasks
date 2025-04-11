@@ -3,12 +3,12 @@ package ru.shift.view.observers;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.model.GameDifficulty;
 import ru.shift.model.field.CellState;
 import ru.shift.model.field.CellStateChange;
 import ru.shift.model.listeners.MV_FiledEventListener;
 import ru.shift.model.listeners.MV_TimerListener;
 import ru.shift.view.GameImage;
-import ru.shift.model.GameDifficulty;
 import ru.shift.view.windows.MainWindow;
 
 @RequiredArgsConstructor
