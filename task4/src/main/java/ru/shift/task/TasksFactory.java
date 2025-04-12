@@ -1,4 +1,4 @@
-package ru.shift;
+package ru.shift.task;
 
 import java.util.ArrayList;
 import java.util.List;

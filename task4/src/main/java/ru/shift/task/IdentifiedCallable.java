@@ -1,4 +1,4 @@
-package ru.shift;
+package ru.shift.task;
 
 import java.util.concurrent.Callable;
 

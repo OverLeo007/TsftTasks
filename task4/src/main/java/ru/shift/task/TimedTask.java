@@ -1,4 +1,4 @@
-package ru.shift;
+package ru.shift.task;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +19,7 @@ public class TimedTask implements IdentifiedCallable<Double> {
         } finally {
             long endTime = System.nanoTime();
             double durationMillis = (endTime - startTime) / 1_000_000.0;
-            log.info("Время выполнения задачи №{}: {} мс", getId(), String.format("%.2f", durationMillis));
+            log.info("T{} executed in {} ms", getId(), String.format("%.2f", durationMillis));
         }
     }
 

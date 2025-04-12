@@ -2,6 +2,8 @@ package ru.shift;
 
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.computer.SeriesComputer;
+import ru.shift.computer.TimedSeriesComputer;
 
 @Slf4j
 public class Main {
@@ -13,12 +15,11 @@ public class Main {
 
     public static void main(String[] args) {
 //        var n = InputUtil.scanPositiveLong();
-        var n = 1_000_000L;
-        var seriesComputer = new SeriesComputer(SERIES_FUNCTION, SERIES_START, n, true);
+        var n = 10_000_000L;
+        var seriesComputer = new TimedSeriesComputer(SERIES_FUNCTION, SERIES_START, n, true);
         var result = seriesComputer.compute();
         log.info("Result: {}", result);
         log.info("Expected result: {}", EXPECTED_RESULT);
-
-
     }
+
 }
