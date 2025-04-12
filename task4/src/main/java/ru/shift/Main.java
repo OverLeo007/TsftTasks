@@ -1,18 +1,24 @@
 package ru.shift;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
 
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+    private static final long SERIES_START = 1L;
+    private static final Function<Long, Double> SERIES_FUNCTION = n ->
+            (n % 2 == 1 ? 1.0 / n : -1.0 / n);
+    private static final double EXPECTED_RESULT = Math.log(2);
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+    public static void main(String[] args) {
+//        var n = InputUtil.scanPositiveLong();
+        var n = 1_000_000L;
+        var seriesComputer = new SeriesComputer(SERIES_FUNCTION, SERIES_START, n, true);
+        var result = seriesComputer.compute();
+        log.info("Result: {}", result);
+        log.info("Expected result: {}", EXPECTED_RESULT);
+
+
     }
 }
