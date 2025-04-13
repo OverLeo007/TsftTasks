@@ -15,15 +15,21 @@ public class ThresholdFineTuner {
     private static final Function<Long, Double> SERIES_FUNCTION = n ->
             (n % 2 == 1 ? 1.0 / n : -1.0 / n);
 
+    // Лучше не менять
     private static final int MAX_EXECUTION_TIME_MS = 5000;
-    private static final double SPEEDUP_THRESHOLD = 0.9;
-    private static final int AVERAGE_RUNS = 5;
     private static final int MIN_N = 10;
+
+    // Можно менять
+    private static final double SPEEDUP_THRESHOLD = 0.9;
+    private static final int AVERAGE_COMPUTE_RUNS = 5;
+    // Точно можно менять
+    private static final int THRESHOLD_RUNS = 10;
+    private static final int START_POWER = 5;
 
     public static void main(String[] args) {
         disableRealisationLogging();
         var tuner = new ThresholdFineTuner();
-        var res = tuner.getAvgThreshold(5, 10);
+        var res = tuner.getAvgThreshold(START_POWER, THRESHOLD_RUNS);
         log.info("Threshold found: {}", res);
     }
 
@@ -88,12 +94,12 @@ public class ThresholdFineTuner {
 
     private double measureAvgTime(Supplier<TimedSeriesComputer> supplier) {
         double total = 0;
-        for (int i = 0; i < AVERAGE_RUNS; i++) {
+        for (int i = 0; i < AVERAGE_COMPUTE_RUNS; i++) {
             TimedSeriesComputer comp = supplier.get();
             comp.compute();
             total += comp.getExecutionTimeMs();
         }
-        return total / AVERAGE_RUNS;
+        return total / AVERAGE_COMPUTE_RUNS;
     }
 
     private void ensureTimeLimitNotExceeded(double singleTime, double multiTime, long n) {

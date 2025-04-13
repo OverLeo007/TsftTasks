@@ -26,13 +26,13 @@ public class Task implements IdentifiedCallable<Double> {
     @Override
     public Double call() throws RuntimeException {
 
-        log.info("{} T{} START with bounds {} to {}", tab, id, start, stop);
+        log.debug("{} T{} START with bounds {} to {}", tab, id, start, stop);
         double accumulator = 0.0;
         for (long i = start; i <= stop; i++) {
             accumulator += seriesFunction.apply(i);
         }
 
-        log.info("{} T{} END with result: {}", tab, id,
+        log.debug("{} T{} END with result: {}", tab, id,
                 accumulator);
         return accumulator;
     }

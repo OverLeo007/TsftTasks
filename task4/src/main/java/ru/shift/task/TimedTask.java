@@ -19,7 +19,7 @@ public class TimedTask implements IdentifiedCallable<Double> {
         } finally {
             long endTime = System.nanoTime();
             double durationMillis = (endTime - startTime) / 1_000_000.0;
-            log.info("T{} executed in {} ms", getId(), String.format("%.2f", durationMillis));
+            log.debug("T{} executed in {} ms", getId(), String.format("%.2f", durationMillis));
         }
     }
 
