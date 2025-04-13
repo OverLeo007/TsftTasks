@@ -6,27 +6,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task.TasksFactory;
 import ru.shift.task.TimedTask;
 
 @Slf4j
 public class TimedSeriesComputer extends Computer {
-//    private final TasksFactory tasksFactory;
-//    private final int workersCount;
 
     private double executionTimeMs = -1;
 
     public TimedSeriesComputer(Function<Long, Double> seriesBody, long seriesStart, long seriesEnd) {
         super(seriesBody, seriesStart, seriesEnd);
-//        var threshold = System.getProperty("multiThread.threshold");
-//        var multiThreadDecisionThreshold =
-//                (threshold == null) ? 1000000 : Long.parseLong(threshold);
-//        if (seriesEnd - seriesStart > multiThreadDecisionThreshold) {
-//            workersCount = Runtime.getRuntime().availableProcessors();
-//        } else {
-//            workersCount = 1;
-//        }
-//        tasksFactory = new TasksFactory(seriesBody, seriesStart, seriesEnd);
     }
 
     public TimedSeriesComputer(
@@ -36,8 +24,6 @@ public class TimedSeriesComputer extends Computer {
             boolean isMultiThread
     ) {
         super(seriesBody, seriesStart, seriesEnd, isMultiThread);
-//        this.workersCount = isMultiThread ? Runtime.getRuntime().availableProcessors() : 1;
-//        tasksFactory = new TasksFactory(seriesBody, seriesStart, seriesEnd);
     }
 
     public double compute() {

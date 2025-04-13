@@ -14,18 +14,16 @@ public class ThresholdFineTuner {
     private static final long SERIES_START = 1L;
     private static final Function<Long, Double> SERIES_FUNCTION = n ->
             (n % 2 == 1 ? 1.0 / n : -1.0 / n);
-    private static final double EXPECTED_RESULT = Math.log(2);
 
     private static final int MAX_EXECUTION_TIME_MS = 5000;
-    private static final double SPEEDUP_THRESHOLD = 0.95;
-    private static final int AVERAGE_RUNS = 3;
+    private static final double SPEEDUP_THRESHOLD = 0.9;
+    private static final int AVERAGE_RUNS = 5;
     private static final int MIN_N = 10;
 
     public static void main(String[] args) {
         disableRealisationLogging();
         var tuner = new ThresholdFineTuner();
-//        var n = InputUtil.scanPositiveLong();
-        var res = tuner.findMultiThreadEfficiencyThreshold(4);
+        var res = tuner.getAvgThreshold(5, 10);
         log.info("Threshold found: {}", res);
     }
 
@@ -43,6 +41,20 @@ public class ThresholdFineTuner {
         return new TimedSeriesComputer(SERIES_FUNCTION, SERIES_START, n, true);
     }
 
+    private long getAvgThreshold(int startPower, int runs) {
+        jitWarmUp();
+        long min = Long.MAX_VALUE;
+        for (int i = 0; i < runs; i++) {
+            var threshold = findMultiThreadEfficiencyThreshold(startPower);
+            log.info("Threshold get: {}", threshold);
+            if (threshold < MIN_N) {
+                continue;
+            }
+            min = Math.min(min, threshold);
+        }
+        return min;
+    }
+
     private long findMultiThreadEfficiencyThreshold(int startPower) {
         long curN = (long) Math.pow(10, startPower);
         long curStep = curN;
@@ -50,25 +62,27 @@ public class ThresholdFineTuner {
 
         do {
             if (isMultiThreadFaster(curN) ) {
-                log.info("switching direction");
                 curStep /= 10;
                 stepDirection *= -1;
             }
             curN += curStep * stepDirection;
 
             if (curN > 100_000_000 || curN < MIN_N) {
-                log.warn("Threshold not found for n = {}", curN);
                 return curN;
             }
         } while (curStep >= MIN_N);
         return curN;
     }
 
+    private void jitWarmUp() {
+        for (int i = 10000; i <= 30000; i += 10000) getSingleThreadComputer(i).compute();
+    }
+
     private boolean isMultiThreadFaster(long n) {
         double singleThreadTime = measureAvgTime(() -> getSingleThreadComputer(n));
         double multiThreadTime = measureAvgTime(() -> getMultiThreadComputer(n));
         ensureTimeLimitNotExceeded(singleThreadTime, multiThreadTime, n);
-        log.info("For {} - Single-threaded time: {} ms, Multi-threaded time: {} ms", n, singleThreadTime, multiThreadTime);
+//        log.info("For {} - Single-threaded time: {} ms, Multi-threaded time: {} ms", n, singleThreadTime, multiThreadTime);
         return multiThreadTime < singleThreadTime * SPEEDUP_THRESHOLD;
     }
 
