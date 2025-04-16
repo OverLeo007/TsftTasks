@@ -1,26 +1,32 @@
 package ru.shift.view.observers;
 
 import lombok.RequiredArgsConstructor;
-import ru.shift.model.listeners.MV_OnNewRecordListener;
-import ru.shift.model.scores.Score;
-import ru.shift.view.listeners.VC_ScoreRecordListener;
+import lombok.Setter;
+import ru.shift.controller.ScoreRecordController;
+import ru.shift.external.scores.Score;
+import ru.shift.model.events.NewHighScoreEvent;
+import ru.shift.model.listeners.NewHighScoreListener;
 import ru.shift.view.windows.MainWindow;
 import ru.shift.view.windows.RecordsWindow;
 
 @RequiredArgsConstructor
-public class RecordWindowObserver implements MV_OnNewRecordListener {
+public class RecordWindowObserver implements NewHighScoreListener {
 
     private final MainWindow mainWindow;
 
-    private final VC_ScoreRecordListener scoreRecordListener;
+    @Setter
+    private ScoreRecordController scoreRecordListener;
+
 
     @Override
-    public void onNewRecord(int newTime, Score oldScore) {
+    public void onNewHighScore(NewHighScoreEvent event) {
+        Score oldScore = event.oldScore();
         if (oldScore == null) {
-            new RecordsWindow(mainWindow, scoreRecordListener, newTime);
+            new RecordsWindow(mainWindow, scoreRecordListener, event.newTime());
         } else {
             new RecordsWindow(mainWindow, scoreRecordListener,
-                    oldScore.name(), oldScore.time(), newTime);
+                    oldScore.name(), oldScore.time(), event.newTime());
         }
     }
+
 }

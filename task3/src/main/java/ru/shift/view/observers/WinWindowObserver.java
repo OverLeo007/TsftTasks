@@ -1,9 +1,11 @@
 package ru.shift.view.observers;
 
-import ru.shift.model.listeners.MV_EndGameListener;
+import ru.shift.model.events.GameStateChangeEvent;
+import ru.shift.model.listeners.ChangeGameStateListener;
+import ru.shift.model.state.GameState;
 import ru.shift.view.windows.WinWindow;
 
-public class WinWindowObserver implements MV_EndGameListener {
+public class WinWindowObserver implements ChangeGameStateListener {
 
     private final WinWindow winWindow;
 
@@ -12,7 +14,9 @@ public class WinWindowObserver implements MV_EndGameListener {
     }
 
     @Override
-    public void onGameEnd() {
-        winWindow.setVisible(true);
+    public void onChangeState(GameStateChangeEvent event) {
+        if (event.gameState() == GameState.WIN) {
+            winWindow.setVisible(true);
+        }
     }
 }

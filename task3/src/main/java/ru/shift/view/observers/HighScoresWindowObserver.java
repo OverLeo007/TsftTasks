@@ -1,12 +1,16 @@
 package ru.shift.view.observers;
 
 import java.util.Map;
-import ru.shift.model.GameDifficulty;
-import ru.shift.model.listeners.MV_OnScoresUpdatedListener;
-import ru.shift.model.scores.Score;
+import lombok.extern.slf4j.Slf4j;
+import ru.shift.app.GameDifficulty;
+import ru.shift.external.events.ScoreUpdatedEvent;
+import ru.shift.external.events.ScoresLoadedEvent;
+import ru.shift.external.listeners.ScoresUpdatedListener;
+import ru.shift.external.scores.Score;
 import ru.shift.view.windows.HighScoresWindow;
 
-public class HighScoresWindowObserver implements MV_OnScoresUpdatedListener {
+@Slf4j
+public class HighScoresWindowObserver implements ScoresUpdatedListener {
 
     private final HighScoresWindow window;
 
@@ -15,15 +19,24 @@ public class HighScoresWindowObserver implements MV_OnScoresUpdatedListener {
     }
 
     @Override
-    public void onScoresLoaded(Map<GameDifficulty, Score> scores) {
-        for (GameDifficulty difficulty : GameDifficulty.values()) {
-            Score score = scores.get(difficulty);
-            onScoreUpdated(difficulty, score);
-        }
+    public void onScoresLoaded(ScoresLoadedEvent event) {
+        log.debug("Scores loaded: {}", event.scores());
+        setupScores(event.scores());
     }
 
     @Override
-    public void onScoreUpdated(GameDifficulty difficulty, Score score) {
+    public void onScoreUpdated(ScoreUpdatedEvent event) {
+        setupScore(event.difficulty(), event.score());
+    }
+
+    private void setupScores(Map<GameDifficulty, Score> scores) {
+        for (GameDifficulty difficulty : GameDifficulty.values()) {
+            Score score = scores.get(difficulty);
+            setupScore(difficulty, score);
+        }
+    }
+
+    private void setupScore(GameDifficulty difficulty, Score score) {
         if (score == null) {
             return;
         }
@@ -32,6 +45,5 @@ public class HighScoresWindowObserver implements MV_OnScoresUpdatedListener {
             case MEDIUM -> window.setMediumRecord(score.name(), score.time());
             case EXPERT -> window.setExpertRecord(score.name(), score.time());
         }
-
     }
 }

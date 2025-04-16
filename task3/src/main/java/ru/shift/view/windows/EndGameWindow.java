@@ -39,6 +39,9 @@ abstract class EndGameWindow extends JDialog {
         setResizable(false);
         pack();
         setLocationRelativeTo(null);
+
+        exitListener = e -> owner.dispose();
+
     }
 
     private JLabel createLoseLabel(GridBagLayout layout) {

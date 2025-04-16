@@ -22,18 +22,18 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.controller.FieldEventController;
+import ru.shift.controller.GameStartController;
 import ru.shift.view.ButtonType;
 import ru.shift.view.GameImage;
-import ru.shift.view.listeners.VC_FieldEventListener;
-import ru.shift.view.listeners.VC_NewGameListener;
 
 @Slf4j
 public class MainWindow extends JFrame  {
 
     @Setter
-    private VC_FieldEventListener fieldEventListener;
+    private FieldEventController fieldEventController;
     @Setter
-    private VC_NewGameListener newGameListener;
+    private GameStartController gameStartController;
 
     private final Container contentPane;
     private final GridBagLayout mainLayout;
@@ -80,7 +80,7 @@ public class MainWindow extends JFrame  {
 
         setJMenuBar(menuBar);
 
-        newGameMenu.addActionListener(e -> newGameListener.onNewGame());
+        newGameMenu.addActionListener(e -> gameStartController.startNewGame());
         exitMenu.addActionListener(e -> dispose());
 
     }
@@ -213,19 +213,19 @@ public class MainWindow extends JFrame  {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (fieldEventListener == null) {
+                if (fieldEventController == null) {
                     return;
                 }
                 if (isButton1Pressed && isButton3Pressed) {
-                    fieldEventListener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
+                    fieldEventController.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
                 }  else {
                     switch (e.getButton()) {
                         case MouseEvent.BUTTON1 ->
-                            fieldEventListener.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
+                            fieldEventController.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
                         case MouseEvent.BUTTON2 ->
-                            fieldEventListener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
+                            fieldEventController.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
                         case MouseEvent.BUTTON3 ->
-                            fieldEventListener.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
+                            fieldEventController.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
                         default -> {
                             // Other mouse buttons are ignored
                         }
@@ -245,8 +245,8 @@ public class MainWindow extends JFrame  {
             JCheckBoxMenuItem showMinesOption = new JCheckBoxMenuItem("Показывать мины");
             showMinesOption.addActionListener(e -> {
                 boolean selected = showMinesOption.isSelected();
-                if (fieldEventListener != null) {
-                    fieldEventListener.onHackStateChanged(selected);
+                if (fieldEventController != null) {
+                    fieldEventController.onHackStateChanged(selected);
                 }
             });
             gameMenu.add(showMinesOption, 1);

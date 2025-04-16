@@ -1,80 +1,20 @@
 package ru.shift.app;
 
+import ru.shift.controller.GameController;
+import ru.shift.external.External;
+import ru.shift.model.CoreModel;
+import ru.shift.view.GameView;
 
-import lombok.extern.slf4j.Slf4j;
-import ru.shift.controller.FieldEventController;
-import ru.shift.controller.NewGameController;
-import ru.shift.controller.ScoreRecordController;
-import ru.shift.model.field.CoreModel;
-import ru.shift.model.scores.ScoreRepository;
-import ru.shift.model.timer.Timer;
-import ru.shift.view.observers.HighScoresWindowObserver;
-import ru.shift.view.observers.LoseWindowObserver;
-import ru.shift.view.observers.MainWindowObserver;
-import ru.shift.view.observers.RecordWindowObserver;
-import ru.shift.view.observers.WinWindowObserver;
-import ru.shift.view.windows.HighScoresWindow;
-import ru.shift.view.windows.LoseWindow;
-import ru.shift.view.windows.MainWindow;
-import ru.shift.view.windows.SettingsWindow;
-import ru.shift.view.windows.WinWindow;
-
-@Slf4j
 public class Application {
-
-    private final MainWindow mainWindow = new MainWindow();
-    private final WinWindow winWindow = new WinWindow(mainWindow);
-    private final LoseWindow loseWindow = new LoseWindow(mainWindow);
-    private final HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
-
-
-    private final MainWindowObserver mainWindowObserver = new MainWindowObserver(mainWindow);
-    private final HighScoresWindowObserver highScoresWindowObserver = new HighScoresWindowObserver(highScoresWindow);
-
-    private final SettingsWindow settingsWindow = new SettingsWindow(mainWindow);
-    private final ScoreRepository scoreRepository = new ScoreRepository(highScoresWindowObserver);
-
-    private final ScoreRecordController scoreRecordController = new ScoreRecordController(scoreRepository);
-
-    private final CoreModel coreModel = CoreModel.builder()
-            .fieldEventListener(mainWindowObserver)
-            .gameTypeListener(settingsWindow)
-            .timer(new Timer(mainWindowObserver))
-            .winListener(new WinWindowObserver(winWindow))
-            .loseListener(new LoseWindowObserver(loseWindow))
-            .newRecordListener(new RecordWindowObserver(mainWindow, scoreRecordController))
-            .scoreRepository(scoreRepository)
-            .build();
-
-    private final FieldEventController fieldEventController = new FieldEventController(coreModel, coreModel);
-    private final NewGameController newGameController = new NewGameController(coreModel);
-
-
-
     public static void main(String[] args) {
-        var app = new Application();
+        var model = new CoreModel();
+        var view = new GameView();
+        var external = new External(model);
+        var controller = new GameController(model, view, external);
+
+        external.getScoreRepository().onListenersSubscribed();
+
         boolean isHack = System.getProperty("hack") != null;
-
-        app.bindListenersToView();
-        app.newGameController.onNewGame();
-        app.mainWindow.setVisible(true);
-        app.mainWindow.enableHackMode(isHack);
-    }
-
-    private void bindListenersToView() {
-        mainWindow.setSettingsMenuAction(e -> settingsWindow.setVisible(true));
-        mainWindow.setHighScoresMenuAction(e -> highScoresWindow.setVisible(true));
-
-        mainWindow.setFieldEventListener(fieldEventController);
-
-        mainWindow.setNewGameListener(newGameController);
-
-        settingsWindow.setGameTypeListener(newGameController);
-
-        winWindow.setNewGameListener(e -> newGameController.onNewGame());
-        winWindow.setExitListener(e -> mainWindow.dispose());
-
-        loseWindow.setNewGameListener(e -> newGameController.onNewGame());
-        loseWindow.setExitListener(e -> mainWindow.dispose());
+        controller.startNewGame(isHack);
     }
 }

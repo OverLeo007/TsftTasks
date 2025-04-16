@@ -1,16 +1,14 @@
 package ru.shift.controller;
 
 import lombok.RequiredArgsConstructor;
-import ru.shift.controller.listeners.CM_ScoreRecordListener;
-import ru.shift.view.listeners.VC_ScoreRecordListener;
+import ru.shift.external.api.ScoreRecorder;
 
 @RequiredArgsConstructor
-public class ScoreRecordController implements VC_ScoreRecordListener {
+public class ScoreRecordController {
 
-    private final CM_ScoreRecordListener scoreRecordListener;
+    private final ScoreRecorder scoreRecorder;
 
-    @Override
-    public void onRecordNameEntered(String name) {
-        scoreRecordListener.onNewScore(name);
+    public void recordNewScoreWithName(String name) {
+        scoreRecorder.recordNewScore(name);
     }
 }

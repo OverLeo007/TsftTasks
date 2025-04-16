@@ -1,50 +1,61 @@
 package ru.shift.view.observers;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.model.GameDifficulty;
-import ru.shift.model.field.CellState;
+import ru.shift.app.GameDifficulty;
+import ru.shift.model.events.BatchOfCellChangeEvent;
+import ru.shift.model.events.BombsCountChangeEvent;
+import ru.shift.model.events.CellChangeEvent;
+import ru.shift.model.events.FieldSetupEvent;
+import ru.shift.external.events.TimerUpdatedEvent;
 import ru.shift.model.field.CellStateChange;
-import ru.shift.model.listeners.MV_FiledEventListener;
-import ru.shift.model.listeners.MV_TimerListener;
+import ru.shift.external.listeners.TimerUpdateListener;
+import ru.shift.model.listeners.BatchOfCellChangeListener;
+import ru.shift.model.listeners.BombsCountChangeListener;
+import ru.shift.model.listeners.CellChangeListener;
+import ru.shift.model.listeners.FieldSetupListener;
 import ru.shift.view.GameImage;
 import ru.shift.view.windows.MainWindow;
 
 @RequiredArgsConstructor
 @Slf4j
-public class MainWindowObserver implements MV_FiledEventListener,
-        MV_TimerListener {
+public class MainWindowObserver implements
+        BatchOfCellChangeListener,
+        CellChangeListener,
+        BombsCountChangeListener,
+        FieldSetupListener,
+        TimerUpdateListener {
 
     private final MainWindow window;
 
     @Override
-    public void onChangeCellState(int x, int y, CellState cellState) {
-        window.setCellImage(x, y, GameImage.fromCellState(cellState));
+    public void onChangeCellState(CellChangeEvent evt) {
+        window.setCellImage(evt.x(), evt.y(), GameImage.fromCellState(evt.cellState()));
     }
 
     @Override
-    public void onFieldSetup(GameDifficulty gameDifficulty) {
-        log.debug("Create game field with {} rows and {} cols", gameDifficulty.rows, gameDifficulty.cols);
+    public void onFieldSetup(FieldSetupEvent evt) {
+        GameDifficulty gameDifficulty = evt.gameDifficulty();
+        log.debug("Create game field with {} rows and {} cols", gameDifficulty.rows,
+                gameDifficulty.cols);
         window.createGameField(gameDifficulty.rows, gameDifficulty.cols);
         window.setBombsCount(gameDifficulty.bombsN);
     }
 
     @Override
-    public void onChangeBombsCount(int count) {
-        window.setBombsCount(count);
+    public void onChangeBombsCount(BombsCountChangeEvent evt) {
+        window.setBombsCount(evt.count());
     }
 
     @Override
-    public void onBatchChangeCellState(List<CellStateChange> changes) {
-        for (CellStateChange change : changes) {
-            onChangeCellState(change.x(), change.y(), change.cellState());
+    public void onBatchOfCellChange(BatchOfCellChangeEvent evt) {
+        for (CellStateChange change : evt.changes()) {
+            window.setCellImage(change.x(), change.y(), GameImage.fromCellState(change.cellState()));
         }
     }
 
     @Override
-    public void onTimeUpdated(int timerValue) {
-        window.setTimerValue(timerValue);
+    public void onTimeUpdated(TimerUpdatedEvent event) {
+        window.setTimerValue(event.timerValue());
     }
-
 }

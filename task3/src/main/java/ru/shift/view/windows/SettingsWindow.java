@@ -6,18 +6,19 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.model.listeners.MV_NewGameListener;
-import ru.shift.model.GameDifficulty;
-import ru.shift.view.listeners.VC_NewGameListener;
+import ru.shift.controller.GameStartController;
+import ru.shift.model.events.NewGameDifficultyEvent;
+import ru.shift.app.GameDifficulty;
+import ru.shift.model.listeners.NewGameDifficultyListener;
 
 @Slf4j
-public class SettingsWindow extends JDialog implements MV_NewGameListener {
+public class SettingsWindow extends JDialog implements NewGameDifficultyListener {
 
     private final Map<GameDifficulty, JRadioButton> radioButtonsMap = new HashMap<>(3);
     private final ButtonGroup radioGroup = new ButtonGroup();
 
     @Setter
-    private VC_NewGameListener gameTypeListener;
+    private GameStartController gameStartController;
     private GameDifficulty gameDifficulty;
 
     public SettingsWindow(JFrame owner) {
@@ -85,8 +86,8 @@ public class SettingsWindow extends JDialog implements MV_NewGameListener {
         okButton.addActionListener(e -> {
             dispose();
 
-            if (gameTypeListener != null) {
-                gameTypeListener.onGameTypeChanged(gameDifficulty);
+            if (gameStartController != null) {
+                gameStartController.startNewGameWithDifficulty(gameDifficulty);
             }
         });
 
@@ -121,8 +122,10 @@ public class SettingsWindow extends JDialog implements MV_NewGameListener {
         return cancelButton;
     }
 
+
     @Override
-    public void onGameTypeSelected(GameDifficulty gameDifficulty) {
-        setGameType(gameDifficulty);
+    public void onNewGameDifficulty(NewGameDifficultyEvent event) {
+        log.debug("onNewGameDifficulty: {}", event.gameDifficulty());
+        setGameType(event.gameDifficulty());
     }
 }

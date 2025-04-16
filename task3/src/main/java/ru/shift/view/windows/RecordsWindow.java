@@ -9,23 +9,23 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import ru.shift.view.listeners.VC_ScoreRecordListener;
+import ru.shift.controller.ScoreRecordController;
 
 public class RecordsWindow extends JDialog {
     private String playerName;
     private JTextField nameField;
 
-    private final VC_ScoreRecordListener scoreRecordListener;
+    private final ScoreRecordController scoreRecordController;
 
     public RecordsWindow(
             JFrame owner,
-            VC_ScoreRecordListener scoreRecordListener,
+            ScoreRecordController scoreRecordController,
             String previousName,
             long previousTime,
             long currentTime
     ) {
         super(owner, "Game Records", true);
-        this.scoreRecordListener = scoreRecordListener;
+        this.scoreRecordController = scoreRecordController;
         initializeUI();
 
         JPanel panel = new JPanel(new GridLayout(5, 1, 5, 5));
@@ -44,11 +44,11 @@ public class RecordsWindow extends JDialog {
 
     public RecordsWindow(
             JFrame owner,
-            VC_ScoreRecordListener scoreRecordListener,
+            ScoreRecordController scoreRecordController,
             long currentTime
     ) {
         super(owner, "Game Records", true);
-        this.scoreRecordListener = scoreRecordListener;
+        this.scoreRecordController = scoreRecordController;
         initializeUI();
 
         JPanel panel = new JPanel(new GridLayout(3, 1, 5, 5));
@@ -81,8 +81,8 @@ public class RecordsWindow extends JDialog {
         JButton okButton = new JButton("OK");
         okButton.addActionListener(e -> {
             playerName = nameField.getText().trim();
-            if (scoreRecordListener != null) {
-                scoreRecordListener.onRecordNameEntered(playerName);
+            if (scoreRecordController != null) {
+                scoreRecordController.recordNewScoreWithName(playerName);
             }
             dispose();
         });
