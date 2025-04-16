@@ -34,10 +34,6 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
 
     private final EventEmitter eventEmitter = EventBus.getEventEmitter();
 
-    /** Менеджер состояния игры, имеет сайд эффекты на смену состояния,
-     * знает о текущей сложности игры, управляет репозиторием рекордов и таймером.
-     * В общем занимается событиями происходящими при смене состояния игры.
-     */
     private final GameStateMachine gsm = new GameStateMachine();
 
     private int rows = GameDifficulty.NOVICE.rows;

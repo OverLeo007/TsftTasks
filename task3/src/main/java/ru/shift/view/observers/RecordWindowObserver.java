@@ -17,7 +17,6 @@ public class RecordWindowObserver implements NewHighScoreListener {
     @Setter
     private ScoreRecordController scoreRecordListener;
 
-
     @Override
     public void onNewHighScore(NewHighScoreEvent event) {
         Score oldScore = event.oldScore();
@@ -28,5 +27,4 @@ public class RecordWindowObserver implements NewHighScoreListener {
                     oldScore.name(), oldScore.time(), event.newTime());
         }
     }
-
 }
