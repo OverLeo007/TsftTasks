@@ -1,8 +1,8 @@
 producer:
-  count: 4
-  time: 1000
+  count: 10
+  time: 800
 consumer:
-  count: 4
+  count: 10
   time: 1000
 storage:
-  size: 10
+  size: 20
