@@ -1,6 +1,6 @@
 package ru.shift;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.Queue;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Storage {
     private final Object monitor = new Object();
 
-    private final Queue<Resource> storageQueue = new LinkedList<>();
+    private final Queue<Resource> storageQueue = new ArrayDeque<>();
     private final int capacity;
 
     public Storage(int capacity) {
