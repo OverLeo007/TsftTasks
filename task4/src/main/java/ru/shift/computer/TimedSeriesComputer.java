@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.series.Series;
 import ru.shift.task.TimedTask;
 
 @Slf4j
@@ -13,9 +14,6 @@ public class TimedSeriesComputer extends Computer {
 
     private double executionTimeMs = -1;
 
-    public TimedSeriesComputer(Function<Long, Double> seriesBody, long seriesStart, long seriesEnd) {
-        super(seriesBody, seriesStart, seriesEnd);
-    }
 
     public TimedSeriesComputer(
             Function<Long, Double> seriesBody,
@@ -24,6 +22,19 @@ public class TimedSeriesComputer extends Computer {
             boolean isMultiThread
     ) {
         super(seriesBody, seriesStart, seriesEnd, isMultiThread);
+    }
+
+    public TimedSeriesComputer(
+            Series series
+    ) {
+        super(series.getSeriesFunction(), series.getStart(), series.getEnd());
+    }
+
+    public TimedSeriesComputer(
+            Series series,
+            boolean isMultiThread
+    ) {
+        super(series.getSeriesFunction(), series.getStart(), series.getEnd(), isMultiThread);
     }
 
     public double compute() {

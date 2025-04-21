@@ -6,22 +6,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.series.Series;
 import ru.shift.task.Task;
 
 @Slf4j
 public class SeriesComputer extends Computer {
 
-    public SeriesComputer(Function<Long, Double> seriesBody, long seriesStart, long seriesEnd) {
-        super(seriesBody, seriesStart, seriesEnd);
+    public SeriesComputer(
+            Series series
+    ) {
+        super(series.getSeriesFunction(), series.getStart(), series.getEnd());
     }
 
     public SeriesComputer(
-            Function<Long, Double> seriesBody,
-            long seriesStart,
-            long seriesEnd,
+            Series series,
             boolean isMultiThread
     ) {
-        super(seriesBody, seriesStart, seriesEnd, isMultiThread);
+        super(series.getSeriesFunction(), series.getStart(), series.getEnd(), isMultiThread);
     }
 
     public double compute() {

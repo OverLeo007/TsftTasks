@@ -6,13 +6,16 @@ import ru.shift.task.TasksFactory;
 
 @Slf4j
 public abstract class Computer {
+    private static final long DEFAULT_THRESHOLD = 1_000_000L;
+
     protected final TasksFactory tasksFactory;
     protected final int workersCount;
 
-    public Computer(Function<Long, Double> seriesBody, long seriesStart, long seriesEnd) {
+    protected Computer(Function<Long, Double> seriesBody, long seriesStart, long seriesEnd) {
+
         var threshold = System.getProperty("multiThread.threshold");
         var multiThreadDecisionThreshold =
-                (threshold == null) ? 1_000_000 : Long.parseLong(threshold);
+                (threshold == null) ? DEFAULT_THRESHOLD : Long.parseLong(threshold);
         log.debug("Create computer with threshold: {}", multiThreadDecisionThreshold);
         if (seriesEnd - seriesStart > multiThreadDecisionThreshold) {
             workersCount = Runtime.getRuntime().availableProcessors();
@@ -22,7 +25,7 @@ public abstract class Computer {
         tasksFactory = new TasksFactory(seriesBody, seriesStart, seriesEnd);
     }
 
-    public Computer(
+    protected Computer(
             Function<Long, Double> seriesBody,
             long seriesStart,
             long seriesEnd,

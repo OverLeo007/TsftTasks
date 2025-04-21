@@ -10,7 +10,8 @@ import ru.shift.utils.LogControl;
 
 @Slf4j
 public class ThresholdFineTuner {
-
+    // TODO: Попробовать ограничить кол-во потоков
+    // Шатается с точки зрения памяти и CPU
     private static final long SERIES_START = 1L;
     private static final Function<Long, Double> SERIES_FUNCTION = n ->
             (n % 2 == 1 ? 1.0 / n : -1.0 / n);

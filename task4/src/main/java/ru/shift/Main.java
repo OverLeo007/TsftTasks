@@ -1,6 +1,5 @@
 package ru.shift;
 
-import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
@@ -9,6 +8,8 @@ import picocli.CommandLine.Option;
 import ru.shift.computer.Computer;
 import ru.shift.computer.SeriesComputer;
 import ru.shift.computer.TimedSeriesComputer;
+import ru.shift.series.Series;
+import ru.shift.series.SeriesRepository;
 import ru.shift.utils.InputUtil;
 
 @Slf4j
@@ -23,15 +24,11 @@ import ru.shift.utils.InputUtil;
 )
 public class Main implements Runnable{
 
-    private static final long SERIES_START = 1L;
-    private static final Function<Long, Double> SERIES_FUNCTION = n ->
-            (n % 2 == 1 ? 1.0 / n : -1.0 / n);
-    private static final double EXPECTED_RESULT = Math.log(2);
 
     @Option(names = {"-t", "--timed"}, description = "Enable timed execution")
     private boolean timed = false;
 
-    @ArgGroup(multiplicity = "1")
+    @ArgGroup
     Exclusive multiThreadDecision;
 
     static class Exclusive {
@@ -43,7 +40,7 @@ public class Main implements Runnable{
                 negatable = true,
                 description = "Enable multi-threading (true by default)"
         )
-        private Boolean multiThread;
+        private Boolean multiThread = true;
 
     }
 
@@ -56,25 +53,53 @@ public class Main implements Runnable{
     public void run() {
 
         Computer seriesComputer;
+        if (multiThreadDecision == null) {
+            log.warn("No multi-threading decision provided, using default");
+            multiThreadDecision = new Exclusive();
+        }
+
+        log.info("Multi-threading decision: {}", multiThreadDecision.multiThread);
+
+        var series = pickSeries();
+
+        System.out.print("Enter a positive long type number: ");
         var n = InputUtil.scanPositiveLong();
+        series.setEnd(n);
         if (multiThreadDecision.threshold != null) {
             System.setProperty("multiThread.threshold", String.valueOf(multiThreadDecision.threshold));
         }
 
         if (multiThreadDecision.multiThread == null) {
             seriesComputer = timed
-                    ? new TimedSeriesComputer(SERIES_FUNCTION, SERIES_START, n)
-                    : new SeriesComputer(SERIES_FUNCTION, SERIES_START, n);
+                    ? new TimedSeriesComputer(series)
+                    : new SeriesComputer(series);
         } else {
             seriesComputer = timed
-                    ? new TimedSeriesComputer(SERIES_FUNCTION, SERIES_START, n, multiThreadDecision.multiThread)
-                    : new SeriesComputer(SERIES_FUNCTION, SERIES_START, n, multiThreadDecision.multiThread);
+                    ? new TimedSeriesComputer(series, multiThreadDecision.multiThread)
+                    : new SeriesComputer(series, multiThreadDecision.multiThread);
         }
 
         var result = seriesComputer.compute();
         log.info("Result: {}", result);
-        log.info("Expected result: {}", EXPECTED_RESULT);
+        log.info("Expected result: {}", series.getExpectedResult());
+    }
 
+    private Series pickSeries() {
+        System.out.println("Select series function:");
+        var repo = SeriesRepository.getInstance();
+        var seriesNames = repo.getSeriesNames();
+        for (int i = 0; i < seriesNames.size(); i++) {
+            System.out.printf("%d. %s%n", i + 1, seriesNames.get(i));
+        }
+        int choice = InputUtil.scanPositiveInt();
+        if (choice < 1 || choice > seriesNames.size()) {
+            System.out.println("Invalid choice. Please try again.");
+            return pickSeries();
+        }
+        var seriesName = seriesNames.get(choice - 1);
+        var series = repo.getSeries(seriesName);
+        System.out.println("Selected series: " + seriesName);
+        return series;
     }
 
 }

@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 public class Task implements IdentifiedCallable<Double> {
     @Getter
     private final int id;
-    private final String tab;
 
     private final long start;
     private final long stop;
@@ -20,19 +19,18 @@ public class Task implements IdentifiedCallable<Double> {
         this.start = start;
         this.stop = stop;
         this.seriesFunction = seriesFunction;
-        this.tab = "─".repeat(id * 2);
     }
 
     @Override
     public Double call() throws RuntimeException {
 
-        log.debug("{} T{} START with bounds {} to {}", tab, id, start, stop);
+        log.debug("T{} START with bounds {} to {}", id, start, stop);
         double accumulator = 0.0;
         for (long i = start; i <= stop; i++) {
             accumulator += seriesFunction.apply(i);
         }
 
-        log.debug("{} T{} END with result: {}", tab, id,
+        log.debug("T{} END with result: {}", id,
                 accumulator);
         return accumulator;
     }
