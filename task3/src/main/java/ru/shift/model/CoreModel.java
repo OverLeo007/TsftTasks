@@ -13,60 +13,56 @@ import lombok.extern.slf4j.Slf4j;
 import ru.shift.app.GameDifficulty;
 import ru.shift.app.bus.EventBus;
 import ru.shift.app.bus.api.EventEmitter;
-import ru.shift.model.api.BombVisibilityToggle;
 import ru.shift.model.api.CellStateManipulator;
 import ru.shift.model.api.GameDifficultyHolder;
 import ru.shift.model.api.NewGameInitializer;
 import ru.shift.model.events.BatchOfCellChangeEvent;
 import ru.shift.model.events.BombsCountChangeEvent;
+import ru.shift.model.events.BombsGeneratedEvent;
 import ru.shift.model.events.CellChangeEvent;
 import ru.shift.model.events.FieldSetupEvent;
+import ru.shift.model.events.GameStateChangeEvent;
 import ru.shift.model.events.NewGameDifficultyEvent;
 import ru.shift.model.field.Cell;
 import ru.shift.model.field.CellState;
 import ru.shift.model.field.CellStateChange;
 import ru.shift.model.state.GameState;
-import ru.shift.model.state.GameStateMachine;
+import ru.shift.utils.Pair;
 
 @Slf4j
 public class CoreModel implements CellStateManipulator, NewGameInitializer,
-        BombVisibilityToggle, GameDifficultyHolder {
+        GameDifficultyHolder {
 
     private final EventEmitter eventEmitter = EventBus.getEventEmitter();
+    private GameState gameState = GameState.STOP;
+    private GameDifficulty gameDifficulty = GameDifficulty.NOVICE;
 
-    private final GameStateMachine gsm = new GameStateMachine();
+    private int rows = gameDifficulty.rows;
+    private int cols = gameDifficulty.cols;
+    private int bombsN = gameDifficulty.bombsN;
 
-    private int rows = GameDifficulty.NOVICE.rows;
-    private int cols = GameDifficulty.NOVICE.cols;
-    private int bombsN = GameDifficulty.NOVICE.bombsN;
-
-    private final Random random = new Random(42);
+    private final Random random = new Random();
     private Cell[][] field;
 
     private int flagsCount = 0;
 
     private int closedCellsCount = 0;
 
-    private boolean isBombsVisible = false;
-
 
     @Override
     public void openCell(int x, int y) {
-        log.debug("Try to open cell at ({}, {}) in {} game state", x, y, gsm.getState());
+        log.debug("Try to open cell at ({}, {}) in {} game state", x, y, gameState);
 
-        switch (gsm.getState()) {
+        switch (gameState) {
             case STOP -> startGameFrom(x, y);
             case PLAY -> openCellStateless(x, y);
         }
-
     }
 
     @Override
     public void toggleFlag(int x, int y) {
         log.debug("Try to toggle flag at ({}, {})", x, y);
-        if (gsm.compareState(
-                state -> state == GameState.LOSE || state == GameState.WIN
-        )) {
+        if (gameState == GameState.LOSE || gameState == GameState.WIN) {
             return;
         }
 
@@ -95,7 +91,7 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
     @Override
     public void openCellsAround(int x, int y) {
         log.debug("Try to open cells around ({}, {})", x, y);
-        if (gsm.compareState(state -> state != GameState.PLAY)) {
+        if (gameState != GameState.PLAY) {
             return;
         }
         var cell = field[y][x];
@@ -114,7 +110,7 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
         }
 
         for (var nextCell : findFromCells(cellsAround, c -> c.isClosed() && !c.isFlagged())) {
-            if (gsm.compareState(state -> state == GameState.PLAY)) {
+            if (gameState == GameState.PLAY) {
                 openCellStateless(nextCell);
             }
         }
@@ -124,13 +120,14 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
     private void startGameFrom(int x, int y) {
         log.debug("Game started from ({}, {})", x, y);
         setupBombs(x, y);
-        gsm.setState(GameState.PLAY);
+        setGameState(GameState.PLAY);
         openCellStateless(x, y);
     }
 
     @Override
     public void initNewGameWithDifficulty(GameDifficulty gameDifficulty) {
-        this.gsm.setGameDifficulty(gameDifficulty);
+        log.debug("Set game difficulty to {}", gameDifficulty);
+        this.gameDifficulty = gameDifficulty;
 
         this.rows = gameDifficulty.rows;
         this.cols = gameDifficulty.cols;
@@ -149,7 +146,7 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
         log.debug("Setup new field with size {}x{}", rows, cols);
 
 
-        eventEmitter.emit(new FieldSetupEvent(gsm.getGameDifficulty()));
+        eventEmitter.emit(new FieldSetupEvent(gameDifficulty));
         field = new Cell[rows][cols];
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < cols; x++) {
@@ -162,7 +159,7 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
         closedCellsCount = rows * cols - bombsN;
         flagsCount = 0;
 
-        gsm.setState(GameState.STOP);
+        setGameState(GameState.STOP);
 
         log.debug("New game is ready");
     }
@@ -180,19 +177,20 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
         Collections.shuffle(bombIndexes, random);
         bombIndexes = bombIndexes.subList(0, bombsN);
 
+        List<Pair<Integer, Integer>> bombsCoords = new ArrayList<>(bombsN);
+
         bombIndexes.forEach(idx -> {
             int y = idx / cols;
             int x = idx % cols;
             field[y][x].setBomb(true);
+            bombsCoords.add(Pair.of(x, y));
         });
 
         if (bombIndexes.contains(startIdx)) {
             log.warn("Fucked up at {}", startIdx);
         }
-        if (isBombsVisible) {
-            showBombs();
-        }
         log.debug("Bombs setup finished");
+        eventEmitter.emit(new BombsGeneratedEvent(bombsCoords));
     }
 
     private void openCellStateless(int x, int y) {
@@ -254,40 +252,7 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
     }
 
     private void endGame(GameState endState) {
-        showBombs();
-        gsm.setState(endState);
-    }
-
-    private void showBombs() {
-        List<CellStateChange> changes = new ArrayList<>();
-        for (int y = 0; y < rows; y++) {
-            for (int x = 0; x < cols; x++) {
-                Cell cell = field[y][x];
-                if (cell.isBomb()) {
-                    changes.add(new CellStateChange(x, y, CellState.BOMB));
-                }
-            }
-        }
-        eventEmitter.emit(new BatchOfCellChangeEvent(changes));
-
-    }
-
-    private void hideBombs() {
-        List<CellStateChange> changes = new ArrayList<>();
-        for (int y = 0; y < rows; y++) {
-            for (int x = 0; x < cols; x++) {
-                Cell cell = field[y][x];
-                if (cell.isBomb()) {
-                    if (cell.isFlagged()) {
-                        changes.add(new CellStateChange(x, y, CellState.FLAG));
-                    } else {
-                        changes.add(new CellStateChange(x, y, CellState.CLOSED));
-                    }
-                }
-            }
-        }
-        eventEmitter.emit(new BatchOfCellChangeEvent(changes));
-
+        setGameState(endState);
     }
 
     private void sendUpdBombsCount() {
@@ -344,18 +309,13 @@ public class CoreModel implements CellStateManipulator, NewGameInitializer,
     }
 
     @Override
-    public void setBombVisibility(boolean isVisible) {
-        if (isVisible) {
-            isBombsVisible = true;
-            showBombs();
-        } else {
-            isBombsVisible = false;
-            hideBombs();
-        }
+    public GameDifficulty getGameDifficulty() {
+        return gameDifficulty;
     }
 
-    @Override
-    public GameDifficulty getGameDifficulty() {
-        return gsm.getGameDifficulty();
+    public void setGameState(GameState gameState) {
+        log.debug("Set game state to {}", gameState);
+        this.gameState = gameState;
+        eventEmitter.emit(new GameStateChangeEvent(gameState));
     }
 }

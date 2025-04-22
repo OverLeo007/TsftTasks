@@ -7,6 +7,7 @@ import ru.shift.external.events.ScoresLoadedEvent;
 import ru.shift.external.events.TimerUpdatedEvent;
 import ru.shift.model.events.BatchOfCellChangeEvent;
 import ru.shift.model.events.BombsCountChangeEvent;
+import ru.shift.model.events.BombsGeneratedEvent;
 import ru.shift.model.events.CellChangeEvent;
 import ru.shift.model.events.FieldSetupEvent;
 import ru.shift.model.events.GameStateChangeEvent;
@@ -58,6 +59,12 @@ public class GameView {
         eventSubscriber.subscribe(BombsCountChangeEvent.class,
                 mainWindowObserver::onChangeBombsCount);
 
+        eventSubscriber.subscribe(BombsGeneratedEvent.class,
+                mainWindowObserver::onBombsGenerated);
+
+        eventSubscriber.subscribe(GameStateChangeEvent.class,
+                mainWindowObserver::onChangeState, 3);
+
         eventSubscriber.subscribe(NewGameDifficultyEvent.class,
                 settingsWindow::onNewGameDifficulty);
 
@@ -74,9 +81,9 @@ public class GameView {
                 mainWindowObserver::onTimeUpdated);
 
         eventSubscriber.subscribe(GameStateChangeEvent.class,
-                loseWindowObserver::onChangeState, 0);
+                loseWindowObserver::onChangeState);
 
         eventSubscriber.subscribe(GameStateChangeEvent.class,
-                winWindowObserver::onChangeState, 0);
+                winWindowObserver::onChangeState);
     }
 }

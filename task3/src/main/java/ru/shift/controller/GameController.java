@@ -13,7 +13,7 @@ public class GameController {
 
     public GameController(CoreModel coreModel, GameView gameView, External external) {
 
-        FieldEventController fieldEventController = new FieldEventController(coreModel, coreModel);
+        FieldEventController fieldEventController = new FieldEventController(coreModel);
         this.gameStartController = new GameStartController(coreModel);
         this.gameView = gameView;
         ScoreRecordController scoreRecordController = new ScoreRecordController(

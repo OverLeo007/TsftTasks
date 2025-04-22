@@ -1,6 +1,7 @@
 package ru.shift.app.bus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,9 @@ public class EventBus implements EventEmitter, EventSubscriber {
         return instance;
     }
 
-    private record ListenerWrapper<T extends Event>(EventListener<T> listener, int priority) { }
+    private record ListenerWrapper<T extends Event>(EventListener<T> listener, int priority) {
+
+    }
 
     public <T extends Event> void subscribe(Class<T> eventType, EventListener<T> listener) {
         subscribe(eventType, listener, DEFAULT_PRIORITY);
@@ -36,23 +39,27 @@ public class EventBus implements EventEmitter, EventSubscriber {
 
     public <T extends Event> void subscribe(Class<T> eventType, EventListener<T> listener,
             int priority) {
-        listeners
-                .computeIfAbsent(eventType, k -> new ArrayList<>())
-                .add(new ListenerWrapper<>(listener, priority));
+        List<ListenerWrapper<? extends Event>> wrappers =
+                listeners.computeIfAbsent(eventType, k -> new ArrayList<>());
+
+        ListenerWrapper<T> newWrapper = new ListenerWrapper<>(listener, priority);
+        int idx = Collections.binarySearch(wrappers, newWrapper,
+                (a, b) -> Integer.compare(b.priority, a.priority));
+        if (idx >= 0) {
+            wrappers.add(idx, newWrapper);
+        } else {
+            wrappers.add((-idx) - 1, newWrapper);
+        }
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Event> void emit(T event) {
-        List<ListenerWrapper<? extends Event>> wrappers = listeners.get(event.getClass());
-
-        if (wrappers != null) {
-            List<ListenerWrapper<? extends Event>> sorted = new ArrayList<>(wrappers);
-            sorted.sort((a, b) -> Integer.compare(b.priority, a.priority));
-
-            for (ListenerWrapper<? extends Event> wrapper : sorted) {
-                ((EventListener<T>) wrapper.listener).onEvent(event);
-            }
+        var wrappers = listeners.get(event.getClass());
+        if (wrappers == null) {
+            return;
         }
+        wrappers.forEach(wrapper -> ((EventListener<T>) wrapper.listener).onEvent(event));
     }
+
 }
 

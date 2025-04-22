@@ -5,15 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import ru.shift.app.GameDifficulty;
 import ru.shift.model.events.BatchOfCellChangeEvent;
 import ru.shift.model.events.BombsCountChangeEvent;
+import ru.shift.model.events.BombsGeneratedEvent;
 import ru.shift.model.events.CellChangeEvent;
 import ru.shift.model.events.FieldSetupEvent;
 import ru.shift.external.events.TimerUpdatedEvent;
+import ru.shift.model.events.GameStateChangeEvent;
 import ru.shift.model.field.CellStateChange;
 import ru.shift.external.listeners.TimerUpdateListener;
 import ru.shift.model.listeners.BatchOfCellChangeListener;
 import ru.shift.model.listeners.BombsCountChangeListener;
+import ru.shift.model.listeners.BombsGeneratedListener;
 import ru.shift.model.listeners.CellChangeListener;
+import ru.shift.model.listeners.ChangeGameStateListener;
 import ru.shift.model.listeners.FieldSetupListener;
+import ru.shift.model.state.GameState;
 import ru.shift.view.GameImage;
 import ru.shift.view.windows.MainWindow;
 
@@ -24,7 +29,9 @@ public class MainWindowObserver implements
         CellChangeListener,
         BombsCountChangeListener,
         FieldSetupListener,
-        TimerUpdateListener {
+        TimerUpdateListener,
+        BombsGeneratedListener,
+        ChangeGameStateListener {
 
     private final MainWindow window;
 
@@ -40,6 +47,7 @@ public class MainWindowObserver implements
                 gameDifficulty.cols);
         window.createGameField(gameDifficulty.rows, gameDifficulty.cols);
         window.setBombsCount(gameDifficulty.bombsN);
+        window.setBombsCoords(null);
     }
 
     @Override
@@ -57,5 +65,17 @@ public class MainWindowObserver implements
     @Override
     public void onTimeUpdated(TimerUpdatedEvent event) {
         window.setTimerValue(event.timerValue());
+    }
+
+    @Override
+    public void onBombsGenerated(BombsGeneratedEvent evt) {
+        window.setBombsCoords(evt.bombCoords());
+    }
+
+    @Override
+    public void onChangeState(GameStateChangeEvent event) {
+        if (event.gameState() == GameState.WIN || event.gameState() == GameState.LOSE) {
+            window.showBombs();
+        }
     }
 }

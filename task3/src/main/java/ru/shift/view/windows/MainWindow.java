@@ -11,6 +11,7 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
@@ -24,6 +25,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.controller.FieldEventController;
 import ru.shift.controller.GameStartController;
+import ru.shift.utils.Pair;
 import ru.shift.view.ButtonType;
 import ru.shift.view.GameImage;
 
@@ -47,6 +49,10 @@ public class MainWindow extends JFrame  {
     protected JButton[][] cellButtons;
     private JLabel timerLabel;
     private JLabel bombsCounterLabel;
+
+    private List<Pair<Integer, Integer>> bombsCoords;
+    private boolean isBombsShown = false;
+
 
     public MainWindow() {
         super("Minesweeper");
@@ -244,12 +250,45 @@ public class MainWindow extends JFrame  {
         if (isHack) {
             JCheckBoxMenuItem showMinesOption = new JCheckBoxMenuItem("Показывать мины");
             showMinesOption.addActionListener(e -> {
-                boolean selected = showMinesOption.isSelected();
-                if (fieldEventController != null) {
-                    fieldEventController.onHackStateChanged(selected);
+                isBombsShown = showMinesOption.isSelected();
+                if (isBombsShown) {
+                    showBombs();
+                } else {
+                    hideBombs();
                 }
             });
             gameMenu.add(showMinesOption, 1);
+        }
+    }
+
+    public void setBombsCoords(
+            List<Pair<Integer, Integer>> bombsCoords) {
+        log.debug("Bombs coords set");
+        this.bombsCoords = bombsCoords;
+        if (isBombsShown) {
+            showBombs();
+        }
+    }
+
+    public void showBombs() {
+        log.debug("Bombs shown");
+        if (bombsCoords != null) {
+            for (Pair<Integer, Integer> coords : bombsCoords) {
+                int x = coords.left();
+                int y = coords.right();
+                cellButtons[y][x].setIcon(GameImage.BOMB.getImageIcon());
+            }
+        }
+    }
+
+    private void hideBombs() {
+        log.debug("Bombs hidden");
+        if (bombsCoords != null) {
+            for (Pair<Integer, Integer> coords : bombsCoords) {
+                int x = coords.left();
+                int y = coords.right();
+                cellButtons[y][x].setIcon(GameImage.CLOSED.getImageIcon());
+            }
         }
     }
 }

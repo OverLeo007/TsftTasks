@@ -2,7 +2,6 @@ package ru.shift.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.model.api.BombVisibilityToggle;
 import ru.shift.model.api.CellStateManipulator;
 import ru.shift.view.ButtonType;
 
@@ -10,7 +9,6 @@ import ru.shift.view.ButtonType;
 @RequiredArgsConstructor
 public class FieldEventController {
     private final CellStateManipulator cellStateManipulator;
-    private final BombVisibilityToggle bombVisibilityToggle;
 
     public void onMouseClick(int x, int y, ButtonType buttonType) {
         switch (buttonType) {
@@ -18,9 +16,5 @@ public class FieldEventController {
             case RIGHT_BUTTON -> cellStateManipulator.toggleFlag(x, y);
             case MIDDLE_BUTTON -> cellStateManipulator.openCellsAround(x, y);
         }
-    }
-
-    public void onHackStateChanged(boolean isHack) {
-        bombVisibilityToggle.setBombVisibility(isHack);
     }
 }
