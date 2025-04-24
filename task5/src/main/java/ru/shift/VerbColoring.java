@@ -1,12 +1,13 @@
 package ru.shift;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public final class VerbColoring {
 
     private VerbColoring() {
         // Prevent instantiation
-        throw new UnsupportedOperationException("Utility class");
     }
 
     private static final String RESET = "\u001B[0m";
@@ -57,5 +58,14 @@ public final class VerbColoring {
             }
         }
         return verb;
+    }
+
+    public static List<String> getColoredWords() {
+        return Stream.concat(
+                        PV.keySet().stream(),
+                        CV.keySet().stream()
+                )
+                .distinct()
+                .toList();
     }
 }

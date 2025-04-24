@@ -1,11 +1,11 @@
-package ru.shift.config.dto;
+package ru.shift.config.properties;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class ConsumerCfg {
+public class ProducerProperties {
     private int count;
     private int time;
 }

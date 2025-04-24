@@ -1,12 +1,14 @@
 package ru.shift;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Consumer implements Runnable {
 
     private static int lastId = 0;
-    private final int id;
+    @Getter
+    private final String id;
     private final long consumeTimeMs;
     private final Storage storage;
 
@@ -17,31 +19,31 @@ public class Consumer implements Runnable {
         this.id = getNextId();
     }
 
-    private static synchronized int getNextId() {
-        return lastId++;
+    private static synchronized String getNextId() {
+        return "Потребитель-" + ++lastId;
     }
 
     @Override
     public void run() {
-        log.info("{} {} работу", this, VerbColoring.getCV("начал"));
+        log.info("{} начал работу", this);
 
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 var resource = storage.get(toString());
-                log.info("{} {} {}", this, VerbColoring.getCV("потребляет"), resource);
+                log.info("{} потребляет {}", this, resource);
                 //noinspection BusyWait
                 Thread.sleep(consumeTimeMs);
-                log.info("{} {} {}", this, VerbColoring.getCV("потребил"), resource);
+                log.info("{} потребил {}", this, resource);
             }
         } catch (InterruptedException e) {
-            log.error("Работа {} была прервана, так как {}", this, e.getMessage());
+            log.error("Работа потока была прервана, так как", e);
             Thread.currentThread().interrupt();
         }
     }
 
     @Override
     public String toString() {
-        return "\t".repeat(12) + "Потребитель-" + (id + 1);
+        return id;
     }
 
 }
