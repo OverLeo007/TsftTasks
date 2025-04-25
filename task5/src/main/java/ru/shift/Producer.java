@@ -26,16 +26,16 @@ public class Producer implements Runnable {
 
     @Override
     public void run() {
-        log.info("{} начал работу", this);
+        log.info("{} начал работу", id);
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                log.info("{} производит ресурс", this);
+                log.info("{} производит ресурс", id);
                 //noinspection BusyWait
                 Thread.sleep(produceTimeMs);
 
                 var resource = new Resource();
-                log.info("{} произвел {}", this, resource);
-                storage.put(resource, toString());
+                log.info("{} произвел {}", id, resource);
+                storage.put(resource, id);
             }
         } catch (InterruptedException e) {
             log.error("Работа потока была прервана, так как", e);
@@ -43,8 +43,8 @@ public class Producer implements Runnable {
         }
     }
 
-    @Override
-    public String toString() {
-        return id;
-    }
+//    @Override
+//    public String toString() {
+//        return id;
+//    }
 }

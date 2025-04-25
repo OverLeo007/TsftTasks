@@ -4,7 +4,6 @@ package ru.shift;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.config.Config;
 import ru.shift.config.properties.RunProperties;
-import ru.shift.exceptions.ConfigurationLoadException;
 
 @Slf4j
 public class Main {
@@ -42,12 +41,7 @@ public class Main {
     private static void loadConfig(String[] args) {
         if (args.length > 0) {
             String profile = args[0];
-            try {
-                Config.loadProfile(profile);
-            } catch (ConfigurationLoadException e) {
-                log.error("Ошибка загрузки конфигурации: {}", e.getMessage());
-                System.exit(1);
-            }
+            Config.loadProfile(profile);
         }
     }
 }

@@ -25,15 +25,15 @@ public class Consumer implements Runnable {
 
     @Override
     public void run() {
-        log.info("{} начал работу", this);
+        log.info("{} начал работу", id);
 
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                var resource = storage.get(toString());
-                log.info("{} потребляет {}", this, resource);
+                var resource = storage.get(id);
+                log.info("{} потребляет {}", id, resource);
                 //noinspection BusyWait
                 Thread.sleep(consumeTimeMs);
-                log.info("{} потребил {}", this, resource);
+                log.info("{} потребил {}", id, resource);
             }
         } catch (InterruptedException e) {
             log.error("Работа потока была прервана, так как", e);
@@ -41,9 +41,9 @@ public class Consumer implements Runnable {
         }
     }
 
-    @Override
-    public String toString() {
-        return id;
-    }
+//    @Override
+//    public String toString() {
+//        return id;
+//    }
 
 }

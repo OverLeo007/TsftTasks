@@ -24,24 +24,24 @@ public class Config {
         try (InputStream inputStream = Config.class.getClassLoader()
                 .getResourceAsStream(fileName)) {
             if (inputStream == null) {
-                throw new ConfigurationLoadException("Конфигурационный файл не найден: " + fileName);
+                throw new ConfigurationLoadException(
+                        "Конфигурационный файл не найден: " + fileName);
             }
             runProperties = yaml.loadAs(inputStream, RunProperties.class);
             if (runProperties == null) {
-                throw new ConfigurationLoadException("Ошибка при загрузке конфигурации из файла: " + fileName);
+                throw new ConfigurationLoadException(
+                        "Ошибка при загрузке конфигурации из файла: " + fileName);
             }
             validateProperties(runProperties);
 
-        }
-        catch (ConfigurationLoadException e) {
-            log.error("Во время получения конфигурации из файла произошла ошибка: {}", e.getMessage());
+        } catch (ConfigurationLoadException e) {
+            log.error("Во время получения конфигурации из файла произошла ошибка: {}",
+                    e.getMessage());
             System.exit(3);
-        }
-        catch (PropertiesArgumentException e) {
+        } catch (PropertiesArgumentException e) {
             log.error("Некорректное значение в конфигурации: {}", e.getMessage());
             System.exit(2);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Непредвиденная ошибка при загрузке конфигурации: {}", e.getMessage());
             System.exit(1);
         }
