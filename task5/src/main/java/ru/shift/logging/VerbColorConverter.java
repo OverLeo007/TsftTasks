@@ -20,7 +20,7 @@ public class VerbColorConverter extends ClassicConverter {
         String message = event.getFormattedMessage();
         if (message == null || message.isBlank() || !IS_COLORED) return message;
 
-        Function<String, String> verbColorFunc = getVerbColorSupplier(message);
+        Function<String, String> verbColorFunc = getVerbColorFunction(message);
 
         return VERB_PATTERN.matcher(message).replaceAll((MatchResult match) -> {
             String verb = match.group(1);
@@ -28,7 +28,7 @@ public class VerbColorConverter extends ClassicConverter {
         });
     }
 
-    private Function<String, String> getVerbColorSupplier(String message) {
+    private Function<String, String> getVerbColorFunction(String message) {
         boolean isProducer = message.startsWith("Производитель");
         boolean isConsumer = message.startsWith("Потребитель");
 
@@ -40,5 +40,4 @@ public class VerbColorConverter extends ClassicConverter {
             return verb -> verb;
         }
     }
-
 }

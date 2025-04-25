@@ -14,7 +14,7 @@ public class Config {
     private static RunProperties runProperties;
 
     private Config() {
-        // Приватный конструктор для предотвращения создания экземпляров
+        // Prevent instantiation
     }
 
     public static void loadProfile(String profile) {
