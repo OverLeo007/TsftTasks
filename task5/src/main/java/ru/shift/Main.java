@@ -2,46 +2,56 @@ package ru.shift;
 
 
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import ru.shift.config.Config;
 import ru.shift.config.properties.RunProperties;
+import ru.shift.exceptions.ConfigurationLoadException;
 
 @Slf4j
 public class Main {
 
     public static void main(String[] args) {
-        loadConfig(args);
+        val properties = loadConfig(args);
 
-        Storage storage = new Storage(Config.getRunConfig().getStorage().getSize());
-        runProducers(Config.getRunConfig(), storage);
-        runConsumers(Config.getRunConfig(), storage);
+        Storage storage = new Storage(properties.getStorage().getSize());
+        runProducers(properties, storage);
+        runConsumers(properties, storage);
     }
 
     private static void runProducers(RunProperties config, Storage storage) {
-        var producerProperties = config.getProducer();
-        var produceTime = producerProperties.getTime();
-        var producerCount = producerProperties.getCount();
+        val producerProperties = config.getProducer();
+        val produceTime = producerProperties.getTime();
+        val producerCount = producerProperties.getCount();
 
         for (int i = 0; i < producerCount; i++) {
-            var producer = new Producer(produceTime, storage);
+            val producer = new Producer(produceTime, storage);
             new Thread(producer, producer.getId()).start();
         }
     }
 
     private static void runConsumers(RunProperties config, Storage storage) {
-        var consumerProperties = config.getConsumer();
-        var consumeTime = consumerProperties.getTime();
-        var consumerCount = consumerProperties.getCount();
+        val consumerProperties = config.getConsumer();
+        val consumeTime = consumerProperties.getTime();
+        val consumerCount = consumerProperties.getCount();
 
         for (int i = 0; i < consumerCount; i++) {
-            var consumer = new Consumer(consumeTime, storage);
+            val consumer = new Consumer(consumeTime, storage);
             new Thread(consumer, consumer.getId()).start();
         }
     }
 
-    private static void loadConfig(String[] args) {
-        if (args.length > 0) {
-            String profile = args[0];
-            Config.loadProfile(profile);
+    private static RunProperties loadConfig(String[] args) {
+        String profile = args.length > 0 ? args[0] : Config.DEFAULT_PROFILE;
+        try {
+            return Config.loadProfile(profile);
+        } catch (ConfigurationLoadException e) {
+            log.error("Ошибка загрузки конфигурации: {}", e.getMessage());
+            System.exit(1);
+            throw new IllegalStateException("Unreachable");
+        } catch (Exception e) {
+            log.error("Неизвестная ошибка: ", e);
+            System.exit(1);
+            throw new IllegalStateException("Unreachable");
         }
     }
 }

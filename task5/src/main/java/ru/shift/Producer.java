@@ -2,6 +2,7 @@ package ru.shift;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 @Slf4j
 public class Producer implements Runnable {
@@ -33,7 +34,7 @@ public class Producer implements Runnable {
                 //noinspection BusyWait
                 Thread.sleep(produceTimeMs);
 
-                var resource = new Resource();
+                val resource = new Resource();
                 log.info("{} произвел {}", id, resource);
                 storage.put(resource, id);
             }
@@ -42,9 +43,4 @@ public class Producer implements Runnable {
             Thread.currentThread().interrupt();
         }
     }
-
-//    @Override
-//    public String toString() {
-//        return id;
-//    }
 }

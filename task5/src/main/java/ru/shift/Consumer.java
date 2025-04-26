@@ -2,6 +2,7 @@ package ru.shift;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 @Slf4j
 public class Consumer implements Runnable {
@@ -11,7 +12,6 @@ public class Consumer implements Runnable {
     private final String id;
     private final long consumeTimeMs;
     private final Storage storage;
-
 
     public Consumer(long consumeTimeMs, Storage storage) {
         this.consumeTimeMs = consumeTimeMs;
@@ -29,7 +29,7 @@ public class Consumer implements Runnable {
 
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                var resource = storage.get(id);
+                val resource = storage.get(id);
                 log.info("{} потребляет {}", id, resource);
                 //noinspection BusyWait
                 Thread.sleep(consumeTimeMs);
@@ -40,10 +40,5 @@ public class Consumer implements Runnable {
             Thread.currentThread().interrupt();
         }
     }
-
-//    @Override
-//    public String toString() {
-//        return id;
-//    }
 
 }

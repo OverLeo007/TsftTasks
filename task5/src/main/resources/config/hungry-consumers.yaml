@@ -5,4 +5,4 @@ consumer:
   count: 4
   time: 500
 storage:
-  size: 10
+  size: 45
