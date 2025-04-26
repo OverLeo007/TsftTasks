@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "8.13" apply false
+}
+
+group = 'ru.shift'
+version = '1.0'
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: "io.freefair.lombok"
+
+    group = 'ru.shift.task6'
+    version = '1.0'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation 'org.slf4j:slf4j-api:2.0.13'
+        implementation 'ch.qos.logback:logback-classic:1.5.18'
+        implementation 'com.fasterxml.jackson.core:jackson-core:2.12.1'
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+
+        testImplementation platform('org.junit:junit-bom:5.10.0')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}

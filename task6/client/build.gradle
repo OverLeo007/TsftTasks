@@ -1,0 +1,7 @@
+
+dependencies {
+    implementation project(':task6:commons')
+    implementation 'com.miglayout:miglayout-swing:5.0'
+    runtimeOnly 'com.formdev:flatlaf-intellij-themes:3.5.2'
+
+}
