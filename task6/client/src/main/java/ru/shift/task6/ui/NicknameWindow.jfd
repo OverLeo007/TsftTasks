@@ -5,7 +5,7 @@ new FormModel {
 	root: new FormRoot {
 		add( new FormWindow( "javax.swing.JDialog", new FormLayoutManager( class java.awt.BorderLayout ) ) {
 			name: "this"
-			"title": "Подключение"
+			"title": "Вход в чат"
 			"$sizePolicy": 1
 			"defaultCloseOperation": 2
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
@@ -14,9 +14,9 @@ new FormModel {
 					"JavaCodeGenerator.variableLocal": true
 				}
 				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
-					"$layoutConstraints": "fillx,insets dialog,hidemode 3,alignx center"
+					"$layoutConstraints": "fillx,insets dialog,hidemode 2,align center center"
 					"$columnConstraints": "[fill]"
-					"$rowConstraints": "[][][]"
+					"$rowConstraints": "[][][][][]"
 				} ) {
 					name: "contentPanel"
 					auxiliary() {
@@ -24,30 +24,26 @@ new FormModel {
 					}
 					add( new FormComponent( "javax.swing.JLabel" ) {
 						name: "label1"
-						"text": "Введите адрес сервера"
+						"text": "Введите никнейм чтобы войти в систему"
 						auxiliary() {
 							"JavaCodeGenerator.variableLocal": true
 						}
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-						"value": "cell 0 0,growx"
+						"value": "cell 0 1"
 					} )
 					add( new FormComponent( "javax.swing.JTextField" ) {
-						name: "addressField"
-						"toolTipText": "0.0.0.0:0 - 255.255.255.255:65535"
-						auxiliary() {
-							"JavaCodeGenerator.customCreateCode": "new JTextField(21);"
-						}
+						name: "nicknameField"
+						"toolTipText": "Длина имени от 3 до 20 символов"
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-						"value": "cell 0 1"
+						"value": "cell 0 2"
 					} )
 					add( new FormComponent( "javax.swing.JLabel" ) {
 						name: "errorLabel"
 						"text": "text"
 						"foreground": new java.awt.Color( 255, 102, 102, 255 )
-						"focusable": false
 						"visible": false
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-						"value": "cell 0 2"
+						"value": "cell 0 3"
 					} )
 				}, new FormLayoutConstraints( class java.lang.String ) {
 					"value": "Center"
@@ -76,7 +72,7 @@ new FormModel {
 				"value": "Center"
 			} )
 		}, new FormLayoutConstraints( null ) {
-			"location": new java.awt.Point( 85, 170 )
+			"location": new java.awt.Point( 235, 180 )
 			"size": new java.awt.Dimension( 400, 185 )
 		} )
 	}

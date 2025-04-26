@@ -12,8 +12,9 @@ import net.miginfocom.swing.*;
 /*
  * Created by JFormDesigner on Sat Apr 26 22:00:10 KRAT 2025
  */
+@SuppressWarnings({"UnnecessaryUnicodeEscape", "DuplicatedCode"})
 @Slf4j
-public class ConnectWindow extends JFrame {
+public class ConnectWindow extends JDialog {
 
     public ConnectWindow() {
         initComponents();
@@ -24,6 +25,7 @@ public class ConnectWindow extends JFrame {
         this.dispose();
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         var dialogPane = new JPanel();
@@ -60,7 +62,7 @@ public class ConnectWindow extends JFrame {
             contentPanel.add(label1, "cell 0 0,growx");
 
             //---- addressField ----
-            addressField.setToolTipText("0.0.0.0:8080");
+            addressField.setToolTipText("0.0.0.0:0 - 255.255.255.255:65535");
             contentPanel.add(addressField, "cell 0 1");
 
             //---- errorLabel ----
@@ -103,7 +105,7 @@ public class ConnectWindow extends JFrame {
     private JButton okButton;
   // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 
-    private static final Pattern partialIpPattern = Pattern.compile(
+    private static final Pattern PARTIAL_IP_PATTERN = Pattern.compile(
             "^\\d{0,3}(\\.\\d{0,3}){0,3}(:\\d{0,5})?$"
     );
 
@@ -142,7 +144,7 @@ public class ConnectWindow extends JFrame {
         if (text.isEmpty()) {
             return true;
         }
-        if (text.contains("..") || !partialIpPattern.matcher(text).matches()) {
+        if (text.contains("..") || !PARTIAL_IP_PATTERN.matcher(text).matches()) {
             return false;
         }
 
