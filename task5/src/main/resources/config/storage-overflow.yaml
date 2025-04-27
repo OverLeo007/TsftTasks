@@ -1,0 +1,8 @@
+producer:
+  count: 4
+  time: 500
+consumer:
+  count: 4
+  time: 2000
+storage:
+  size: 10

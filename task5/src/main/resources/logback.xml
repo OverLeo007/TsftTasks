@@ -1,0 +1,27 @@
+<configuration>
+  <logger name="ch.qos.logback" level="OFF"/>
+  <logger name="ch.qos.logback.classic" level="OFF"/>
+
+  <conversionRule conversionWord="coloredVerbs" converterClass="ru.shift.logging.VerbColorConverter"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.out</target>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%cyan(%d{HH:mm:ss.SSS}) %highlight([%level]) %cyan([%16thread] %18logger{52} -) %highlight(%coloredVerbs%n)
+      </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>${user.dir}/task5/logs.txt</file>
+    <append>true</append>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%16thread] %-5level %18logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="${log.level:-INFO}">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+</configuration>
