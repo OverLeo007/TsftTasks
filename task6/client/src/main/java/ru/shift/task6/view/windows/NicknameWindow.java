@@ -2,7 +2,7 @@
  * Created by JFormDesigner on Sun Apr 27 00:57:31 KRAT 2025
  */
 
-package ru.shift.task6.ui;
+package ru.shift.task6.view.windows;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

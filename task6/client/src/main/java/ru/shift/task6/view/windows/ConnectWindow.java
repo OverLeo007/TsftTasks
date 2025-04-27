@@ -1,4 +1,4 @@
-package ru.shift.task6.ui;
+package ru.shift.task6.view.windows;
 
 import java.awt.*;
 import java.awt.event.*;
