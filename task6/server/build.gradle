@@ -21,4 +21,6 @@
 
 dependencies {
     implementation project(':task6:commons')
+    implementation 'org.yaml:snakeyaml:2.4'
+
 }

@@ -1,18 +1,52 @@
 package ru.shift.task6;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import java.util.Scanner;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import ru.shift.task6.config.Config;
+import ru.shift.task6.config.RunProperties;
+import ru.shift.task6.exceptions.ConfigurationLoadException;
+
+@Slf4j
 public class Main {
 
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        log.info("Загрузка конфигурации...");
+        val properties = loadConfig();
+        val port = properties.getServer().getPort();
+        log.info("Запуск сервера на порту: {}", port);
+        startExitListener();
+        new Server(properties).start();
+    }
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+    private static RunProperties loadConfig() {
+        try {
+            return Config.loadProperties();
+        } catch (ConfigurationLoadException e) {
+            log.error("Ошибка загрузки конфигурации: {}", e.getMessage());
+            System.exit(1);
+            throw new IllegalStateException("Unreachable");
+        } catch (Exception e) {
+            log.error("Неизвестная ошибка: ", e);
+            System.exit(1);
+            throw new IllegalStateException("Unreachable");
         }
     }
+
+    private static void startExitListener() {
+        Thread exitThread = new Thread(() -> {
+            Scanner scanner = new Scanner(System.in);
+            while (true) {
+                String command = scanner.nextLine();
+                if ("exit".equalsIgnoreCase(command.trim())) {
+                    log.info("Команда exit получена. Завершение работы сервера...");
+                    System.exit(0);
+                }
+            }
+        });
+        exitThread.setName("ServerExitListener");
+        exitThread.setDaemon(true);
+        exitThread.start();
+    }
+
 }
