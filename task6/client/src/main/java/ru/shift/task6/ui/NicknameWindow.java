@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import javax.swing.*;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -43,6 +44,7 @@ public class NicknameWindow extends JDialog {
 
     //======== this ========
     setTitle("\u0412\u0445\u043e\u0434 \u0432 \u0447\u0430\u0442");
+    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     var contentPane = getContentPane();
     contentPane.setLayout(new BorderLayout());
 

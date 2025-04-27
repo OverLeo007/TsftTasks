@@ -110,7 +110,6 @@ public class ChatWindow extends JFrame {
     contentPane.add(panel3, BorderLayout.WEST);
     setSize(615, 730);
     setLocationRelativeTo(getOwner());
-
     // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
   }
 
