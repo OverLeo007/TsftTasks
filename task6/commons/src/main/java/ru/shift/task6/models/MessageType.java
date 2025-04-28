@@ -5,5 +5,6 @@ public enum MessageType {
     LEAVE,
     JOIN,
     ERROR,
-    SYSTEM
+    SYSTEM,
+    SUCCESS
 }

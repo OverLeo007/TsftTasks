@@ -49,9 +49,13 @@ public class ClientHandler implements Runnable {
                     new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
 
             authenticate();
-            acceptMessage();
+            acceptMessages();
         } catch (SocketException e) {
-            log.info("Пользователь {} отключился", user.name());
+            if (user != null) {
+                log.info("Пользователь {} отключился", user.name());
+            } else {
+                log.info("Пользователь отключился не пройдя аутентификацию");
+            }
         } catch (IOException e) {
             log.error("Ошибка ввода-вывода", e);
         } catch (Exception e) {
@@ -94,17 +98,22 @@ public class ClientHandler implements Runnable {
 
             this.user = new User(newUser.name(), Instant.now());
             clientRepository.addClient(this.user, this);
+            send(new Message(
+                    this.user,
+                    MessageType.SUCCESS,
+                    "Вы успешно вошли в чат как '" + user.name() + "'",
+                    Instant.now()));
             Thread.currentThread().setName("ClientHandler-" + user.name());
 
             log.info("Пользователь '{}' подключился", user);
-            broadcast.accept(new Message(user, MessageType.JOIN, newUser + " присоединился к чату",
+            broadcast.accept(new Message(user, MessageType.JOIN, user + " присоединился к чату",
                     Instant.now()));
 
             break;
         }
     }
 
-    private void acceptMessage() throws IOException {
+    private void acceptMessages() throws IOException {
         String inputLine;
         while ((inputLine = reader.readLine()) != null) {
             try {

@@ -41,7 +41,7 @@ public class Server {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Остановка сервера...");
                 try {
-                    broadcast(new Message(SERVER_USER, MessageType.SYSTEM, "Сервер отключается", Instant.now()));
+                    broadcast(new Message(SERVER_USER, MessageType.SYSTEM, "Сервер выключен", Instant.now(), true));
                     clientRepository.closeAll();
                     serverSocket.close();
                     isClosed.set(true);

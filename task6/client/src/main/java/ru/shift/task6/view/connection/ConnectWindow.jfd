@@ -1,0 +1,165 @@
+JFDML JFormDesigner: "8.2.4.0.393" Java: "21.0.3" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormWindow( "javax.swing.JDialog", new FormLayoutManager( class java.awt.BorderLayout ) ) {
+			name: "this"
+			"title": "Подключение"
+			"$sizePolicy": 1
+			"defaultCloseOperation": 2
+			"minimumSize": new java.awt.Dimension( 470, 200 )
+			"preferredSize": new java.awt.Dimension( 470, 200 )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$layoutConstraints": "insets dialog,alignx right"
+				"$columnConstraints": "[button,fill]"
+				"$rowSpecs": "[fill]"
+			} ) {
+				name: "buttonBar"
+				auxiliary() {
+					"JavaCodeGenerator.variableLocal": true
+				}
+				add( new FormComponent( "javax.swing.JButton" ) {
+					name: "finishButton"
+					"text": "Finish"
+					"enabled": false
+					addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "finish", true ) )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+			}, new FormLayoutConstraints( class java.lang.String ) {
+				"value": "South"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
+				name: "dialogPane"
+				auxiliary() {
+					"JavaCodeGenerator.variableLocal": true
+				}
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+					"$layoutConstraints": "fillx,insets dialog,hidemode 3,alignx center"
+					"$columnConstraints": "[fill]"
+					"$rowConstraints": "[][][][]"
+				} ) {
+					name: "contentPanel"
+					auxiliary() {
+						"JavaCodeGenerator.variableLocal": true
+					}
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) {
+						"hgap": 2
+						"vgap": 2
+					} ) {
+						name: "panel1"
+						auxiliary() {
+							"JavaCodeGenerator.variableLocal": true
+						}
+						add( new FormComponent( "javax.swing.JTextField" ) {
+							name: "addressField"
+							"toolTipText": "0.0.0.0:0 - 255.255.255.255:65535"
+							auxiliary() {
+								"JavaCodeGenerator.customCreateCode": "new JTextField(21);"
+							}
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "Center"
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "label1"
+							"text": "Введите адрес сервера"
+							"labelFor": new FormReference( "addressField" )
+							auxiliary() {
+								"JavaCodeGenerator.variableLocal": true
+							}
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "North"
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "errorAddressLabel"
+							"text": "text"
+							"foreground": &Color0 new java.awt.Color( 255, 102, 102, 255 )
+							"focusable": false
+							"visible": false
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "South"
+						} )
+						add( new FormComponent( "javax.swing.JButton" ) {
+							name: "addressOkButton"
+							"text": "Connect"
+							"enabled": false
+							addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "addressOk", true ) )
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "East"
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "statusAddressLabel"
+							"visible": false
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "West"
+						} )
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 1"
+					} )
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) {
+						"hgap": 2
+						"vgap": 2
+					} ) {
+						name: "panel2"
+						auxiliary() {
+							"JavaCodeGenerator.variableLocal": true
+						}
+						add( new FormComponent( "javax.swing.JTextField" ) {
+							name: "nicknameField"
+							"toolTipText": "Длина имени от 3 до 20 символов"
+							"enabled": false
+							auxiliary() {
+								"JavaCodeGenerator.customCreateCode": "new JTextField(20);"
+							}
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "Center"
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "label2"
+							"text": "Введите адрес сервера"
+							"labelFor": new FormReference( "nicknameField" )
+							auxiliary() {
+								"JavaCodeGenerator.variableLocal": true
+							}
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "North"
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "nicknameErrorLabel"
+							"text": "text"
+							"foreground": #Color0
+							"focusable": false
+							"visible": false
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "South"
+						} )
+						add( new FormComponent( "javax.swing.JButton" ) {
+							name: "nicknameOkButton"
+							"text": "Auth"
+							"enabled": false
+							addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "nicknameOk", true ) )
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "East"
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "statusNicknameLabel"
+							"visible": false
+						}, new FormLayoutConstraints( class java.lang.String ) {
+							"value": "West"
+						} )
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 2"
+					} )
+				}, new FormLayoutConstraints( class java.lang.String ) {
+					"value": "Center"
+				} )
+			}, new FormLayoutConstraints( class java.lang.String ) {
+				"value": "Center"
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 50, 185 )
+			"size": new java.awt.Dimension( 525, 225 )
+		} )
+	}
+}

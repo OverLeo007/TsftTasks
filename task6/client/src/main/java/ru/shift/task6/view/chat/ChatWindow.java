@@ -2,7 +2,7 @@
  * Created by JFormDesigner on Sun Apr 27 01:49:14 KRAT 2025
  */
 
-package ru.shift.task6.view.windows;
+package ru.shift.task6.view.chat;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -11,7 +11,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import javax.swing.*;
 import javax.swing.border.*;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.BoxLayout;
@@ -31,28 +30,27 @@ import lombok.extern.slf4j.Slf4j;
 import ru.shift.task6.models.Message;
 import ru.shift.task6.models.MessageType;
 import ru.shift.task6.models.User;
+import ru.shift.task6.presenter.ChatPresenter;
+import ru.shift.task6.view.components.Icons;
 import ru.shift.task6.view.components.UserCellRenderer;
 
 /**
  * @author leva
  */
+@SuppressWarnings("UnnecessaryUnicodeEscape")
 @Slf4j
 public class ChatWindow extends JFrame {
 
-    public ChatWindow() {
+    private final ChatPresenter chatPresenter;
+
+    public ChatWindow(ChatPresenter chatPresenter) {
+        this.chatPresenter = chatPresenter;
         initComponents();
     }
 
-    private void createUIComponents() {
-        // TODO: add custom component creation code here
-    }
 
     private void messageFieldEnterKeyPressed(KeyEvent e) {
-        
-    }
-
-    private void messageFieldeEnterKeyPressed(KeyEvent e) {
-      // TODO add your code here
+      chatPresenter.sendMessage(messageField.getText());
     }
 
     private void initComponents() {
@@ -166,16 +164,16 @@ public class ChatWindow extends JFrame {
               messageField.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
-                  messageFieldeEnterKeyPressed(e);
+                  messageFieldEnterKeyPressed(e);
                 }
               });
               panel2.add(messageField);
 
               //---- sendButton ----
               sendButton.setPreferredSize(new Dimension(42, 31));
-              sendButton.setIcon(new FlatSVGIcon("send_white.svg"));
               sendButton.setMinimumSize(new Dimension(78, 42));
               sendButton.setMaximumSize(new Dimension(78, 42));
+              sendButton.setIcon(Icons.SEND.icon());
               panel2.add(sendButton);
             }
             panel1.add(panel2);
@@ -240,4 +238,10 @@ public class ChatWindow extends JFrame {
         timer.start();
     }
 
+    public void onDisconnect(String reason) {
+        chatErrorLabel.setText(reason);
+        chatErrorLabel.setVisible(true);
+        messageField.setEnabled(false);
+        sendButton.setEnabled(false);
+    }
 }

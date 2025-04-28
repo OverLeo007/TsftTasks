@@ -6,7 +6,11 @@ public record Message(
         User sender,
         MessageType messageType,
         String text,
-        Instant time
+        Instant time,
+        Boolean fin
 ) {
 
+    public Message(User sender, MessageType messageType, String text, Instant time) {
+        this(sender, messageType, text, time, false);
+    }
 }

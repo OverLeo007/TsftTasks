@@ -25,7 +25,7 @@ public class ClientRepository {
     }
 
     public boolean contains(User user) {
-        return clients.containsKey(user);
+        return clients.keySet().stream().anyMatch(u -> u.name().equals(user.name()));
     }
 
     public void closeAll() throws IOException {

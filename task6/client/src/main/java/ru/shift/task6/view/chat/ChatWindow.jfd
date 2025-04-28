@@ -97,14 +97,16 @@ new FormModel {
 							"preferredSize": new java.awt.Dimension( 49, 31 )
 							"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
 							"maximumSize": new java.awt.Dimension( 2147483647, 31 )
-							addEvent( new FormEvent( "java.awt.event.KeyListener", "keyPressed", "messageFieldeEnterKeyPressed", true ) )
+							addEvent( new FormEvent( "java.awt.event.KeyListener", "keyPressed", "messageFieldEnterKeyPressed", true ) )
 						} )
 						add( new FormComponent( "javax.swing.JButton" ) {
 							name: "sendButton"
 							"preferredSize": new java.awt.Dimension( 42, 31 )
-							"icon": new com.jformdesigner.model.SwingIcon( 0, "/send_white.svg" )
 							"minimumSize": new java.awt.Dimension( 78, 42 )
 							"maximumSize": new java.awt.Dimension( 78, 42 )
+							auxiliary() {
+								"JavaCodeGenerator.postInitCode": "${field}.setIcon(Icons.SEND.icon());"
+							}
 						} )
 					} )
 				}, new FormLayoutConstraints( class java.lang.String ) {
