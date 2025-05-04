@@ -3,11 +3,14 @@ JFDML JFormDesigner: "8.2.4.0.393" Java: "21.0.3" encoding: "UTF-8"
 new FormModel {
 	contentType: "form/swing"
 	root: new FormRoot {
+		auxiliary() {
+			"JavaCodeGenerator.defaultVariableModifiers": 4
+		}
 		add( new FormWindow( "javax.swing.JFrame", new FormLayoutManager( class javax.swing.BoxLayout ) ) {
 			name: "this"
 			"$sizePolicy": 1
 			"title": "Чат"
-			"defaultCloseOperation": 3
+			"defaultCloseOperation": 0
 			"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
 			"minimumSize": new java.awt.Dimension( 648, 312 )
 			"preferredSize": new java.awt.Dimension( 648, 312 )
@@ -45,10 +48,9 @@ new FormModel {
 							"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
 							"focusable": false
 							auxiliary() {
-								"JavaCodeGenerator.typeParameters": "User"
-								"JavaCodeGenerator.variableAnnotations": "@Getter"
+								"JavaCodeGenerator.typeParameters": "UserInfo"
 								"JavaCodeGenerator.customCreateCode": "new JList<>();"
-								"JavaCodeGenerator.postCreateCode": "${field}.setModel(userModel);\n${field}.setCellRenderer(new UserCellRenderer());\n${field}.setSelectionModel(new DefaultListSelectionModel() {\n    @Override\n    public void setSelectionInterval(int index0, int index1) {\n    }\n});\n${field}.setBackground(new Color(0x3c3f41));"
+								"JavaCodeGenerator.postInitCode": "${field}.setCellRenderer(new UserCellRenderer());\n${field}.setSelectionModel(new DefaultListSelectionModel() {\n    @Override\n    public void setSelectionInterval(int index0, int index1) {\n    }\n});\n${field}.setBackground(new Color(0x3c3f41));"
 							}
 						} )
 					} )
@@ -75,6 +77,9 @@ new FormModel {
 					} )
 					add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
 						name: "scrollPane3"
+						auxiliary() {
+							"JavaCodeGenerator.variableLocal": true
+						}
 						add( new FormComponent( "javax.swing.JTextPane" ) {
 							name: "chatArea"
 							"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
@@ -97,7 +102,6 @@ new FormModel {
 							"preferredSize": new java.awt.Dimension( 49, 31 )
 							"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
 							"maximumSize": new java.awt.Dimension( 2147483647, 31 )
-							addEvent( new FormEvent( "java.awt.event.KeyListener", "keyPressed", "messageFieldEnterKeyPressed", true ) )
 						} )
 						add( new FormComponent( "javax.swing.JButton" ) {
 							name: "sendButton"
@@ -105,7 +109,7 @@ new FormModel {
 							"minimumSize": new java.awt.Dimension( 78, 42 )
 							"maximumSize": new java.awt.Dimension( 78, 42 )
 							auxiliary() {
-								"JavaCodeGenerator.postInitCode": "${field}.setIcon(Icons.SEND.icon());"
+								"JavaCodeGenerator.postInitCode": "${field}.setIcon(new FlatSVGIcon(Icons.SEND.icon()));"
 							}
 						} )
 					} )
@@ -114,7 +118,7 @@ new FormModel {
 				} )
 			} )
 		}, new FormLayoutConstraints( null ) {
-			"location": new java.awt.Point( 45, 75 )
+			"location": new java.awt.Point( 35, 45 )
 			"size": new java.awt.Dimension( 875, 730 )
 		} )
 	}

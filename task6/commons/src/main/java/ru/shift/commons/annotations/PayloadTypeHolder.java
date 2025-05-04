@@ -16,6 +16,8 @@ public final class PayloadTypeHolder {
     private static final String PAYLOAD_CLASSPATH = "ru.shift.commons.models.payload";
 
     private static final Map<PayloadType, Class<? extends Payload>> PAYLOAD_TYPES = new HashMap<>();
+    private static final Map<Class<? extends Payload>, PayloadType> TYPE_PAYLOADS = new HashMap<>();
+
 
     static {
         Reflections reflections = new Reflections(PAYLOAD_CLASSPATH);
@@ -25,14 +27,22 @@ public final class PayloadTypeHolder {
             PayloadMapping mapping = cls.getAnnotation(PayloadMapping.class);
             if (mapping != null) {
                 PAYLOAD_TYPES.put(mapping.value(), cls);
+                TYPE_PAYLOADS.put(cls, mapping.value());
             }
         }
     }
 
-    public static Class<? extends Payload> getFromType(PayloadType type) {
+    public static Class<? extends Payload> getFromType(PayloadType type) throws TypeMappingException {
         if (!PAYLOAD_TYPES.containsKey(type)) {
             throw new TypeMappingException("No message class found for type %s".formatted(type));
         }
         return PAYLOAD_TYPES.get(type);
+    }
+
+    public static PayloadType getFromClass(Class<? extends Payload> clazz) throws TypeMappingException {
+        if (!TYPE_PAYLOADS.containsKey(clazz)) {
+            throw new TypeMappingException("No PayloadType found for class %s".formatted(clazz.getSimpleName()));
+        }
+        return TYPE_PAYLOADS.get(clazz);
     }
 }

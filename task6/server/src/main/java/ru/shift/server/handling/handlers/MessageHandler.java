@@ -19,6 +19,7 @@ public class MessageHandler {
     @BroadcastResponse(PayloadType.MESSAGE)
     private ChatMessage handleMessage(ChatMessage chatMessage) {
         context.checkAuthorized("Нельзя отправить сообщения без ввода имени");
+        context.checkJoined("Перед отправкой сообщения необходимо присоединиться к чату");
         if (!chatMessage.getSender().getNickname().equals(context.getUser().getNickname())) {
             throw new ForbiddenException("Нельзя отправлять сообщения от чужого имени");
         }

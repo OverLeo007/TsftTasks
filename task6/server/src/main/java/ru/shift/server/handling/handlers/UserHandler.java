@@ -68,21 +68,13 @@ public class UserHandler {
     private UserListResponse handleUserListRequest(UserListRequest request) {
         log.info("User wants to get active users list");
         context.checkAuthorized("Для совершения этого запроса необходимо ввести никнейм");
+        context.checkJoined("Вы должны быть в чате чтобы получить список пользователей.");
         return new UserListResponse(service.getAllUsers());
     }
 
     @RequestType(type = PayloadType.SHUTDOWN)
-    @BroadcastResponse(PayloadType.LEAVE_RS)
-    private LeaveResponse handleClientDisconnection(ShutdownNotice notice) throws IOException {
+    private void handleClientDisconnection(ShutdownNotice notice) throws IOException {
         log.info("Client disconnected");
-        if (!context.isAuthorized()) {
-            context.close();
-            return null;
-        }
-        service.removeClient(context.getUser());
-        if (!context.isJoined()) {
-            return null;
-        }
-        return new LeaveResponse(context.getUser());
+        context.close();
     }
 }

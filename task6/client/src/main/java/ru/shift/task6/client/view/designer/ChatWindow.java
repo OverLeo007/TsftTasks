@@ -2,74 +2,55 @@
  * Created by JFormDesigner on Sun Apr 27 01:49:14 KRAT 2025
  */
 
-package ru.shift.task6.view.chat;
+package ru.shift.task6.client.view.designer;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
+import java.awt.Font;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.text.BadLocationException;
+import javax.swing.JTextPane;
+import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.models.Message;
-import ru.shift.task6.models.MessageType;
-import ru.shift.task6.models.User;
-import ru.shift.task6.presenter.ChatPresenter;
-import ru.shift.task6.view.components.Icons;
-import ru.shift.task6.view.components.UserCellRenderer;
+import com.formdev.flatlaf.extras.*;
+import ru.shift.commons.models.payload.UserInfo;
+import ru.shift.task6.client.view.misc.Icons;
+import ru.shift.task6.client.view.misc.UserCellRenderer;
 
 /**
- * @author leva
+ * @author Lev Sokolov
  */
-@SuppressWarnings("UnnecessaryUnicodeEscape")
-@Slf4j
 public class ChatWindow extends JFrame {
 
-    private final ChatPresenter chatPresenter;
-
-    public ChatWindow(ChatPresenter chatPresenter) {
-        this.chatPresenter = chatPresenter;
+    public ChatWindow() {
         initComponents();
     }
 
-
-    private void messageFieldEnterKeyPressed(KeyEvent e) {
-      chatPresenter.sendMessage(messageField.getText());
-    }
-
+    @SuppressWarnings("UnnecessaryUnicodeEscape")
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         var panel4 = new JPanel();
         var panel3 = new JPanel();
         var scrollPane1 = new JScrollPane();
         usersList = new JList<>();
-        usersList.setModel(userModel);
-        usersList.setCellRenderer(new UserCellRenderer());
-        usersList.setSelectionModel(new DefaultListSelectionModel() {
-            @Override
-            public void setSelectionInterval(int index0, int index1) {
-            }
-        });
-        usersList.setBackground(new Color(0x3c3f41));
         var panel1 = new JPanel();
         chatErrorLabel = new JLabel();
-        scrollPane3 = new JScrollPane();
+        var scrollPane3 = new JScrollPane();
         chatArea = new JTextPane();
         var panel2 = new JPanel();
         messageField = new JTextField();
@@ -77,7 +58,7 @@ public class ChatWindow extends JFrame {
 
         //======== this ========
         setTitle("\u0427\u0430\u0442");
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setFont(new Font("JetBrains Mono", Font.PLAIN, 12));
         setMinimumSize(new Dimension(648, 312));
         setPreferredSize(new Dimension(648, 312));
@@ -108,6 +89,13 @@ public class ChatWindow extends JFrame {
               //---- usersList ----
               usersList.setFont(new Font("JetBrains Mono", Font.PLAIN, 12));
               usersList.setFocusable(false);
+              usersList.setCellRenderer(new UserCellRenderer());
+              usersList.setSelectionModel(new DefaultListSelectionModel() {
+                  @Override
+                  public void setSelectionInterval(int index0, int index1) {
+                  }
+              });
+              usersList.setBackground(new Color(0x3c3f41));
               scrollPane1.setViewportView(usersList);
             }
             panel3.add(scrollPane1);
@@ -161,19 +149,13 @@ public class ChatWindow extends JFrame {
               messageField.setPreferredSize(new Dimension(49, 31));
               messageField.setFont(new Font("JetBrains Mono", Font.PLAIN, 12));
               messageField.setMaximumSize(new Dimension(2147483647, 31));
-              messageField.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                  messageFieldEnterKeyPressed(e);
-                }
-              });
               panel2.add(messageField);
 
               //---- sendButton ----
               sendButton.setPreferredSize(new Dimension(42, 31));
               sendButton.setMinimumSize(new Dimension(78, 42));
               sendButton.setMaximumSize(new Dimension(78, 42));
-              sendButton.setIcon(Icons.SEND.icon());
+              sendButton.setIcon(new FlatSVGIcon(Icons.SEND.icon()));
               panel2.add(sendButton);
             }
             panel1.add(panel2);
@@ -187,61 +169,11 @@ public class ChatWindow extends JFrame {
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
-    @Getter
-    private JList<User> usersList;
-    private JLabel chatErrorLabel;
-    private JScrollPane scrollPane3;
-    private JTextPane chatArea;
-    private JTextField messageField;
-    private JButton sendButton;
+    protected JList<UserInfo> usersList;
+    protected JLabel chatErrorLabel;
+    protected JTextPane chatArea;
+    protected JTextField messageField;
+    protected JButton sendButton;
   // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 
-    private final DefaultListModel<User> userModel = new DefaultListModel<>();
-
-    public void appendMessage(Message message) {
-        StyledDocument doc = chatArea.getStyledDocument();
-        try {
-            switch (message.messageType()) {
-                case JOIN, LEAVE -> {
-                    String eventText = message.sender().name() + (message.messageType() == MessageType.JOIN ? " зашел в чат" : " вышел из чата");
-                    doc.insertString(doc.getLength(), eventText + "\n", doc.getStyle("regular"));
-                    doc.setParagraphAttributes(doc.getLength() - eventText.length(), eventText.length(), doc.getStyle("center"), true);
-                }
-                case TEXT -> {
-                    String formattedTime = formatTime(message.time());
-                    String header = "<" + message.sender().name() + ":" + formattedTime + "> ";
-                    doc.insertString(doc.getLength(), header, doc.getStyle("time"));
-                    doc.insertString(doc.getLength(), "- " + message.text() + "\n", doc.getStyle("regular"));
-                }
-            }
-        } catch (BadLocationException e) {
-            log.error("Error inserting message into chat area", e);
-        }
-    }
-
-    private String formatTime(Instant instant) {
-        return DateTimeFormatter.ofPattern("HH:mm")
-                .withZone(ZoneId.systemDefault())
-                .format(instant);
-    }
-
-    public void addUser(User user) {
-        userModel.addElement(user);
-    }
-
-    public void removeUser(User user) {
-        userModel.removeElement(user);
-    }
-
-    public void runTimer() {
-        Timer timer = new Timer(2000, e -> usersList.repaint());
-        timer.start();
-    }
-
-    public void onDisconnect(String reason) {
-        chatErrorLabel.setText(reason);
-        chatErrorLabel.setVisible(true);
-        messageField.setEnabled(false);
-        sendButton.setEnabled(false);
-    }
 }

@@ -1,6 +1,5 @@
 package ru.shift.server.handling;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.PrintWriter;
 import java.time.Instant;
 import java.util.Objects;
@@ -9,6 +8,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import ru.shift.commons.JsonSerializer;
+import ru.shift.commons.exceptions.SerializationException;
 import ru.shift.commons.models.Envelope;
 import ru.shift.commons.models.Header;
 import ru.shift.commons.models.PayloadType;
@@ -28,34 +28,25 @@ public class MessageSender {
         this.writer = writer;
     }
 
-    public <T extends Payload> void send(PayloadType payloadType, T payload) {
-        checkWriter();
-        val header = new Header(payloadType, Instant.now());
-        val envelope = new Envelope<>(header, payload);
-        send(envelope);
-    }
-
     public void send(Envelope<? extends Payload> envelope) {
         checkWriter();
         try {
             val json = JsonSerializer.serialize(envelope);
             writer.println(json);
-        } catch (JsonProcessingException e) {
-            log.error("Ошибка сериализации сообщения", e);
-            sendClientError("Некорректный Json");
+        } catch (SerializationException e) {
+            log.error("Message serialization error", e);
+            sendError(Fault.SERVER, "Ошибка при сериализации ответа");
         }
-    }
-
-    public void sendClientError(String errorMessage) {
-        checkWriter();
-        sendError(Fault.CLIENT, errorMessage);
     }
 
     public void sendError(Fault fault, String errorMessage) {
         checkWriter();
         val response = new ErrorResponse(fault, errorMessage);
         try {
-            send(PayloadType.ERROR, response);
+            val header = new Header(PayloadType.ERROR, Instant.now());
+            val envelope = new Envelope<>(header, response);
+            val json = JsonSerializer.serialize(envelope);
+            writer.println(json);
         } catch (Exception e) {
             log.error("Ошибка при отправке ошибки клиенту", e);
         }
@@ -64,18 +55,7 @@ public class MessageSender {
     public <T extends Payload> void broadcast(PayloadType payloadType, T payload) {
         checkWriter();
         val header = new Header(payloadType, Instant.now());
-        broadcast(header, payload);
-    }
-
-    public <T extends Payload> void broadcast(Header header, T payload) {
-        checkWriter();
         val envelope = new Envelope<>(header, payload);
-        broadcastConsumer.accept(envelope);
-    }
-
-    public <T extends Payload> void broadcast(Envelope<T> envelope) {
-        checkWriter();
-        envelope.getHeader().setSendTime(Instant.now());
         broadcastConsumer.accept(envelope);
     }
 

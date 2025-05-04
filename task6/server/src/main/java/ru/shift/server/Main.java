@@ -11,10 +11,10 @@ import ru.shift.server.exceptions.ConfigurationLoadException;
 public class Main {
 
     public static void main(String[] args) {
-        log.info("Загрузка конфигурации...");
+        log.info("Loading configuration...");
         val properties = loadConfig();
         val port = properties.getServer().getPort();
-        log.info("Запуск сервера на порту: {}", port);
+        log.info("Starting server at port: {}", port);
         startExitListener();
         new Server(properties).start();
     }
@@ -23,11 +23,11 @@ public class Main {
         try {
             return Config.loadProperties();
         } catch (ConfigurationLoadException e) {
-            log.error("Ошибка загрузки конфигурации: {}", e.getMessage());
+            log.error("Error while loading configuration: {}", e.getMessage());
             System.exit(1);
             throw new IllegalStateException("Unreachable");
         } catch (Exception e) {
-            log.error("Неизвестная ошибка: ", e);
+            log.error("Unknown error: ", e);
             System.exit(1);
             throw new IllegalStateException("Unreachable");
         }
@@ -39,7 +39,7 @@ public class Main {
             while (true) {
                 String command = scanner.nextLine();
                 if ("exit".equalsIgnoreCase(command.trim())) {
-                    log.info("Команда exit получена. Завершение работы сервера...");
+                    log.info("Exit command handled. Shutting down...");
                     System.exit(0);
                 }
             }

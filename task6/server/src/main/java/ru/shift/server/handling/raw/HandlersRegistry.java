@@ -28,7 +28,7 @@ import ru.shift.server.exceptions.client.AbstractClientFaultException;
 @Slf4j
 public class HandlersRegistry {
 
-    private static final String CONTROLLERS_CLASSPATH = "ru.shift.server.controllers";
+    private static final String HANDLERS_CLASSPATH = "ru.shift.server.handling.handlers";
 
     private final Map<PayloadType, Consumer<Envelope<?>>> handlers = new EnumMap<>(PayloadType.class);
 
@@ -62,7 +62,7 @@ public class HandlersRegistry {
 
     private void registerHandlers(ClientContext context, ClientService service) {
 
-        Reflections reflections = new Reflections(CONTROLLERS_CLASSPATH);
+        Reflections reflections = new Reflections(HANDLERS_CLASSPATH);
         Set<Class<?>> handlerClasses = reflections.getTypesAnnotatedWith(Handler.class);
 
         for (Class<?> clazz : handlerClasses) {

@@ -9,8 +9,8 @@ import lombok.val;
 import ru.shift.commons.models.Envelope;
 import ru.shift.commons.models.payload.Payload;
 import ru.shift.server.client.ClientContext;
-import ru.shift.server.services.ClientService;
 import ru.shift.server.handling.raw.RawRequestHandler;
+import ru.shift.server.services.ClientService;
 
 @Slf4j
 public class ClientHandler implements Runnable {
@@ -24,25 +24,25 @@ public class ClientHandler implements Runnable {
         this.socket = socket;
         this.service = clientService;
         this.broadcastConsumer = broadcastConsumer;
-        log.info("Новый пользователь подключается");
+        log.info("New socket connection opened");
     }
 
     @Override
     public void run() {
-        try (ClientContext context = new ClientContext(socket, broadcastConsumer)) {
+        try (ClientContext context = new ClientContext(socket, broadcastConsumer, service::removeClient)) {
             val requestHandler = new RawRequestHandler(context, service);
 
             String line;
             while ((line = context.getReader().readLine()) != null) {
                 requestHandler.dispatch(line);
             }
-
-        } catch (SocketException e) {
-            log.info("Пользователь отключился");
+        } catch (SocketException ignored) {
         } catch (IOException e) {
-            log.error("Ошибка ввода-вывода", e);
+            log.error("IO error", e);
         } catch (Exception e) {
-            log.warn("Пользователь отключился с ошибкой", e);
+            log.warn("Client disconnected with unknown error", e);
+        } finally {
+            log.info("Connection closed");
         }
     }
 

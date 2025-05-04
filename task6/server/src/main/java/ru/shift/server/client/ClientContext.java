@@ -11,12 +11,17 @@ import java.time.Instant;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import ru.shift.commons.models.Envelope;
+import ru.shift.commons.models.PayloadType;
 import ru.shift.commons.models.payload.Payload;
 import ru.shift.commons.models.payload.UserInfo;
+import ru.shift.commons.models.payload.responses.LeaveResponse;
+import ru.shift.server.exceptions.client.ForbiddenException;
 import ru.shift.server.handling.MessageSender;
 import ru.shift.server.exceptions.client.UnauthorizedException;
 
+@Slf4j
 public class ClientContext implements AutoCloseable {
 
     private final Socket socket;
@@ -26,23 +31,25 @@ public class ClientContext implements AutoCloseable {
     private final BufferedReader reader;
     @Getter
     private UserInfo user;
-    @Getter
     private boolean authorized;
     @Getter
     @Setter
     private boolean joined;
-
-    public ClientContext(Socket socket, Consumer<Envelope<? extends Payload>> broadcastConsumer)
+    private final Consumer<UserInfo> onCloseOp;
+    // TODO: Удостовериться что уведомления о ливе будет отправлено при любом закрытии контекста
+    public ClientContext(
+            Socket socket,
+            Consumer<Envelope<? extends Payload>> broadcastConsumer,
+            Consumer<UserInfo> onCloseOp
+    )
             throws IOException {
         this.socket = socket;
         this.sender = new MessageSender(
                 broadcastConsumer,
-                new PrintWriter(
-                        new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8),
-                        true
-                )
+                new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true)
         );
         this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+        this.onCloseOp = onCloseOp;
 
     }
 
@@ -54,7 +61,22 @@ public class ClientContext implements AutoCloseable {
         this.authorized = true;
     }
 
+    @Override
     public void close() throws IOException {
+        if (socket.isClosed()) {
+            log.debug("Socket already closed");
+            return;
+        }
+        if (authorized) {
+            log.debug("Closing context for user: {}", user.getNickname());
+            if (joined) {
+                sender.broadcast(PayloadType.LEAVE_RS, new LeaveResponse(user));
+            }
+            onCloseOp.accept(user);
+
+        } else {
+            log.debug("Closing context for socket: {}", socket);
+        }
         socket.close();
     }
 
@@ -62,5 +84,15 @@ public class ClientContext implements AutoCloseable {
         if (!authorized) {
             throw new UnauthorizedException(msg);
         }
+    }
+
+    public void checkJoined(String msg) {
+        if (!joined) {
+            throw new ForbiddenException(msg);
+        }
+    }
+
+    public boolean isAuthorized() {
+        return authorized;
     }
 }

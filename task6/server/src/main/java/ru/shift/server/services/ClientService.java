@@ -2,7 +2,6 @@ package ru.shift.server.services;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,27 +17,22 @@ public class ClientService {
     private final Map<UserInfo, ClientContext> clients = new ConcurrentHashMap<>();
 
     public UserInfo addClient(UserInfo user, ClientContext context) {
+        log.debug("Adding new user: {}", user.getNickname());
         val userToAdd = new UserInfo(user.getNickname(), Instant.now());
-        clients.putIfAbsent(user, context);
+        clients.putIfAbsent(userToAdd, context);
         return userToAdd;
     }
 
     public void removeClient(UserInfo user) {
+        log.debug("Removing user: {}", user);
         if (!clients.containsKey(user)) {
             return;
         }
-        try {
-            clients.remove(user).close();
-        } catch (IOException e) {
-            log.error("Error while closing the client Context");
-        }
-    }
-
-    public Collection<ClientContext> getAllClients() {
-        return clients.values();
+        clients.remove(user);
     }
 
     public void sendAll(Envelope<?> envelope) {
+        log.debug("Broadcast {}", envelope);
         clients.values().forEach(context -> context.getSender().send(envelope));
     }
 
@@ -51,6 +45,7 @@ public class ClientService {
     }
 
     public void closeAll() throws IOException {
+        log.debug("Closing all user connections");
         for (ClientContext context : clients.values()) {
             context.close();
         }
