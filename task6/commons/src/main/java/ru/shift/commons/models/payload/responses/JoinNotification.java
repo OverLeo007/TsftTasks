@@ -11,7 +11,7 @@ import ru.shift.commons.models.payload.UserInfo;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@PayloadMapping(PayloadType.LEAVE_RS)
-public class LeaveResponse implements Payload {
+@PayloadMapping(PayloadType.JOIN_NOTIFICATION)
+public class JoinNotification implements Payload {
     private UserInfo user;
 }

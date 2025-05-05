@@ -39,7 +39,7 @@ public class RawRequestHandler {
         try {
             dispatch(JsonSerializer.deserialize(json));
         } catch (DeserializationException e) {
-            createAndSendErrorResponse(Fault.CLIENT, e);
+            createAndSendErrorResponse(PayloadType.ERROR, Fault.CLIENT, e);
         }
     }
 
@@ -51,7 +51,7 @@ public class RawRequestHandler {
         sender.send(responseEnvelope);
     }
 
-    public void createAndSendErrorResponse(Fault fault, Throwable cause) {
-        createAndSendResponse(PayloadType.ERROR, new ErrorResponse(fault, cause.getMessage()));
+    public void createAndSendErrorResponse(PayloadType correctResponseType, Fault fault, Throwable cause) {
+        createAndSendResponse(PayloadType.ERROR, new ErrorResponse(correctResponseType, fault, cause.getMessage()));
     }
 }

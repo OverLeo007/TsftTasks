@@ -6,19 +6,12 @@ import lombok.NoArgsConstructor;
 import ru.shift.commons.annotations.PayloadMapping;
 import ru.shift.commons.models.PayloadType;
 import ru.shift.commons.models.payload.Payload;
+import ru.shift.commons.models.payload.UserInfo;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-@PayloadMapping(PayloadType.ERROR)
-public class ErrorResponse implements Payload {
-
-    public enum Fault {
-        CLIENT,
-        SERVER
-    }
-
-    private PayloadType correctResponseType;
-    private Fault fault;
-    private String message;
+@NoArgsConstructor
+@PayloadMapping(PayloadType.LEAVE_NOTIFICATION)
+public class LeaveNotification implements Payload {
+    private UserInfo user;
 }

@@ -16,7 +16,7 @@ import ru.shift.commons.models.Envelope;
 import ru.shift.commons.models.PayloadType;
 import ru.shift.commons.models.payload.Payload;
 import ru.shift.commons.models.payload.UserInfo;
-import ru.shift.commons.models.payload.responses.LeaveResponse;
+import ru.shift.commons.models.payload.responses.LeaveNotification;
 import ru.shift.server.exceptions.client.ForbiddenException;
 import ru.shift.server.handling.MessageSender;
 import ru.shift.server.exceptions.client.UnauthorizedException;
@@ -36,7 +36,6 @@ public class ClientContext implements AutoCloseable {
     @Setter
     private boolean joined;
     private final Consumer<UserInfo> onCloseOp;
-    // TODO: Удостовериться что уведомления о ливе будет отправлено при любом закрытии контекста
     public ClientContext(
             Socket socket,
             Consumer<Envelope<? extends Payload>> broadcastConsumer,
@@ -70,7 +69,7 @@ public class ClientContext implements AutoCloseable {
         if (authorized) {
             log.debug("Closing context for user: {}", user.getNickname());
             if (joined) {
-                sender.broadcast(PayloadType.LEAVE_RS, new LeaveResponse(user));
+                sender.broadcast(PayloadType.LEAVE_NOTIFICATION, new LeaveNotification(user));
             }
             onCloseOp.accept(user);
 
@@ -90,9 +89,5 @@ public class ClientContext implements AutoCloseable {
         if (!joined) {
             throw new ForbiddenException(msg);
         }
-    }
-
-    public boolean isAuthorized() {
-        return authorized;
     }
 }

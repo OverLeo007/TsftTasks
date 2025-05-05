@@ -1,6 +1,7 @@
 package ru.shift.task6.client.view.windowImpl;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.function.Consumer;
@@ -17,12 +18,15 @@ public class NicknameWindowImpl extends NicknameWindow {
     }
 
     public void setOkButtonListener(Consumer<String> onNicknameEntered) {
-        okButton.addActionListener(e -> {
+        ActionListener okAction = e -> {
             log.info("Пытаемся войти в чат ");
             statusNicknameLabel.setIcon(new FlatSVGIcon(Icons.PENDING.icon()));
             statusNicknameLabel.setVisible(true);
             onNicknameEntered.accept(nicknameField.getText());
-        });
+        };
+
+        okButton.addActionListener(okAction);
+        nicknameField.addActionListener(okAction);
     }
 
     private DocumentListener createFieldDocumentListener() {
@@ -70,8 +74,8 @@ public class NicknameWindowImpl extends NicknameWindow {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                dispose();
                 action.run();
+                dispose();
             }
         });
     }

@@ -1,8 +1,7 @@
 package ru.shift.task6.client.view.windowImpl;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.ActionListener;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import javax.swing.event.DocumentEvent;
@@ -27,13 +26,16 @@ public class ConnectionWindowImpl extends ConnectionWindow {
     }
 
     public void setOkButtonListener(Consumer<String> onAddressEntered) {
-        okButton.addActionListener(e -> {
+        ActionListener okAction = e -> {
             log.info("Подключаемся к серверу {}", addressField.getText());
             errorAddressLabel.setText("");
             statusAddressLabel.setVisible(true);
             statusAddressLabel.setIcon(new FlatSVGIcon(Icons.SUCCESS.icon()));
             onAddressEntered.accept(addressField.getText());
-        });
+        };
+
+        okButton.addActionListener(okAction);
+        addressField.addActionListener(okAction);
     }
 
     private DocumentListener createAddressFieldDocumentListener() {
@@ -158,12 +160,4 @@ public class ConnectionWindowImpl extends ConnectionWindow {
         statusAddressLabel.setIcon(new FlatSVGIcon(Icons.SUCCESS.icon()));
     }
 
-    public void setOnCloseAction(Runnable action) {
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
-            }
-        });
-    }
 }

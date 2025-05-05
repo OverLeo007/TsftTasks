@@ -23,6 +23,7 @@ import ru.shift.commons.models.payload.responses.ErrorResponse;
 import ru.shift.commons.models.payload.responses.JoinResponse;
 import ru.shift.commons.models.payload.responses.SuccessAuthResponse;
 import ru.shift.commons.models.payload.responses.UserListResponse;
+import ru.shift.task6.client.exceptions.SocketConnectionException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class SocketClient implements Closeable {
     @Setter
     private UserInfo user;
 
-    private final SocketConnection connection;
+    private final Connection connection;
 
     public SocketClient(Socket socket) {
         this.connection = new SocketConnection(socket);
@@ -43,6 +44,7 @@ public class SocketClient implements Closeable {
             Consumer<SuccessAuthResponse> onSuccess,
             Consumer<ErrorResponse> onError
     ) {
+        log.debug("Sending auth request");
         connection.sendAwaitResponse(
                 PayloadType.AUTH,
                 new AuthRequest(new UserInfo(nickname, null)),
@@ -61,6 +63,7 @@ public class SocketClient implements Closeable {
             Consumer<JoinResponse> onSuccess,
             Consumer<ErrorResponse> onError
     ) {
+        log.debug("Sending join request");
         connection.sendAwaitResponse(
                 PayloadType.JOIN_RQ,
                 new JoinRequest(),
@@ -74,6 +77,7 @@ public class SocketClient implements Closeable {
             Consumer<List<UserInfo>> onSuccess,
             Consumer<ErrorResponse> onError
     ) {
+        log.debug("Sending user list request");
         connection.sendAwaitResponse(
                 PayloadType.USER_LIST_RQ,
                 new UserListRequest(),
@@ -87,21 +91,26 @@ public class SocketClient implements Closeable {
     }
 
     public void sendMessage(String message) {
+        log.debug("Sending message");
         connection.send(PayloadType.MESSAGE,
                 new ChatMessage(user, message, Instant.now()));
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Payload> void addListener(PayloadType messageType, Consumer<T> onMessage) {
-        connection.addPermanentMessageListener(messageType, envelope -> {
-            onMessage.accept((T) envelope.getPayload());
-        });
+
+        connection.addPermanentMessageListener(messageType,
+                envelope -> onMessage.accept((T) envelope.getPayload()));
     }
 
 
-
     public void sendDisconnection(String reason) {
-        connection.send(PayloadType.SHUTDOWN, new ShutdownNotice(reason));
+        log.debug("Sending disconnection");
+        try {
+            connection.send(PayloadType.SHUTDOWN, new ShutdownNotice(reason));
+        } catch (SocketConnectionException e) {
+            log.warn("Ошибка при отключении: ", e);
+        }
     }
 
 

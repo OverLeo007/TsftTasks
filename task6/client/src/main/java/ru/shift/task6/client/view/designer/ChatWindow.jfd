@@ -69,11 +69,12 @@ new FormModel {
 					add( new FormComponent( "javax.swing.JLabel" ) {
 						name: "chatErrorLabel"
 						"foreground": new java.awt.Color( 255, 255, 102, 255 )
-						"minimumSize": new java.awt.Dimension( 3, 17 )
-						"maximumSize": new java.awt.Dimension( 3, 17 )
-						"preferredSize": new java.awt.Dimension( 3, 17 )
-						"visible": false
+						"minimumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
 						"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+						"text": "Server disconnected"
+						"horizontalAlignment": 0
+						"preferredSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+						"visible": false
 					} )
 					add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
 						name: "scrollPane3"

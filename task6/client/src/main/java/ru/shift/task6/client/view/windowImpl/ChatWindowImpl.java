@@ -43,8 +43,7 @@ public class ChatWindowImpl extends ChatWindow {
         messageField.addActionListener(sendAction);
     }
 
-    public void show(UserInfo user) {
-        onJoin(user);
+    public void run() {
         runTimer();
         setVisible(true);
     }
@@ -106,18 +105,20 @@ public class ChatWindowImpl extends ChatWindow {
     }
 
     public void onDisconnect(ShutdownNotice notice) {
-        chatErrorLabel.setText(notice.getReason());
-        chatErrorLabel.setVisible(true);
-        messageField.setEnabled(false);
-        sendButton.setEnabled(false);
+
+            log.debug("setting up shutdown notice {}", notice);
+            chatErrorLabel.setText(notice.getReason());
+            chatErrorLabel.setVisible(true);
+            messageField.setEnabled(false);
+            sendButton.setEnabled(false);
     }
 
     public void setOnCloseAction(Runnable action) {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                dispose();
                 action.run();
+                dispose();
             }
         });
     }

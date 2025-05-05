@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
+import javax.swing.*;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
@@ -58,7 +59,7 @@ public class ChatWindow extends JFrame {
 
         //======== this ========
         setTitle("\u0427\u0430\u0442");
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setFont(new Font("JetBrains Mono", Font.PLAIN, 12));
         setMinimumSize(new Dimension(648, 312));
         setPreferredSize(new Dimension(648, 312));
@@ -110,11 +111,12 @@ public class ChatWindow extends JFrame {
 
             //---- chatErrorLabel ----
             chatErrorLabel.setForeground(new Color(0xffff66));
-            chatErrorLabel.setMinimumSize(new Dimension(3, 17));
-            chatErrorLabel.setMaximumSize(new Dimension(3, 17));
-            chatErrorLabel.setPreferredSize(new Dimension(3, 17));
-            chatErrorLabel.setVisible(false);
+            chatErrorLabel.setMinimumSize(null);
             chatErrorLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 12));
+            chatErrorLabel.setText("Server disconnected");
+            chatErrorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            chatErrorLabel.setPreferredSize(null);
+            chatErrorLabel.setVisible(false);
             panel1.add(chatErrorLabel);
 
             //======== scrollPane3 ========

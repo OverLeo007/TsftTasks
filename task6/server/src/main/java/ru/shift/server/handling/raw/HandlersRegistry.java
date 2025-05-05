@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
+import ru.shift.commons.misc.TriConsumer;
 import ru.shift.commons.models.Envelope;
 import ru.shift.commons.models.Header;
 import ru.shift.commons.models.PayloadType;
@@ -34,7 +35,7 @@ public class HandlersRegistry {
 
     private final BiConsumer<PayloadType, Payload> responseSender;
     private final BiConsumer<PayloadType, Payload> broadcaster;
-    private final BiConsumer<Fault, Throwable> errorResponseSender;
+    private final TriConsumer<PayloadType, Fault, Throwable> errorResponseSender;
 
 
     public HandlersRegistry(
@@ -42,7 +43,7 @@ public class HandlersRegistry {
             ClientService service,
             BiConsumer<PayloadType, Payload> responseSender,
             BiConsumer<PayloadType, Payload> broadcaster,
-            BiConsumer<Fault, Throwable> errorResponseSender
+            TriConsumer<PayloadType, Fault, Throwable> errorResponseSender
     ) {
         this.responseSender = responseSender;
         this.errorResponseSender = errorResponseSender;
@@ -53,7 +54,7 @@ public class HandlersRegistry {
     public Consumer<Envelope<?>> getHandler(PayloadType type) {
         if (!handlers.containsKey(type)) {
             log.error("No handler found for {}", type);
-            return createErrorHandler(
+            return createErrorHandler(type,
                     new NoHandlerFoundException("No handler found for " + type)
             );
         }
@@ -69,7 +70,6 @@ public class HandlersRegistry {
             log.trace("Creating handlers of {} instance", clazz.getSimpleName());
             try {
                 Object instance;
-                // TODO: Weak point
                 if (Arrays.stream(clazz.getDeclaredFields()).anyMatch(f -> f.getType().equals(ClientService.class))) {
                     instance = clazz.getDeclaredConstructor(ClientContext.class, ClientService.class)
                             .newInstance(context, service);
@@ -93,6 +93,7 @@ public class HandlersRegistry {
 
     private Consumer<Envelope<?>> createHandler(Object instance, Method method) {
         return (env) -> {
+            PayloadType correctResponseType = PayloadType.ERROR;
             try {
                 Object arg = getMethodArg(method, env);
 
@@ -100,9 +101,12 @@ public class HandlersRegistry {
                 if (result != null) {
                     if (method.isAnnotationPresent(ResponseType.class)) {
                         PayloadType responseType = method.getAnnotation(ResponseType.class).value();
+                        correctResponseType = responseType;
                         responseSender.accept(responseType, (Payload) result);
-                    } else if (method.isAnnotationPresent(BroadcastResponse.class)) {
+                    }
+                    if (method.isAnnotationPresent(BroadcastResponse.class)) {
                         PayloadType responseType = method.getAnnotation(BroadcastResponse.class).value();
+                        correctResponseType = responseType;
                         broadcaster.accept(responseType, (Payload) result);
                     }
                 }
@@ -115,10 +119,10 @@ public class HandlersRegistry {
                         ? Fault.CLIENT
                         : Fault.SERVER;
 
-                errorResponseSender.accept(fault, cause);
+                errorResponseSender.accept(correctResponseType, fault, cause);
 
             } catch (Exception e) {
-                errorResponseSender.accept(Fault.SERVER, e);
+                errorResponseSender.accept(correctResponseType, Fault.SERVER, e);
             }
         };
     }
@@ -138,7 +142,7 @@ public class HandlersRegistry {
         return arg;
     }
 
-    private Consumer<Envelope<?>> createErrorHandler(Throwable cause) {
-        return  env -> errorResponseSender.accept(Fault.SERVER, cause);
+    private Consumer<Envelope<?>> createErrorHandler(PayloadType correctResponseType, Throwable cause) {
+        return  env -> errorResponseSender.accept(correctResponseType, Fault.SERVER, cause);
     }
 }

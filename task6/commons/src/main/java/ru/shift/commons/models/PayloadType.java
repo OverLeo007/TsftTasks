@@ -1,8 +1,8 @@
 package ru.shift.commons.models;
 
 public enum PayloadType {
-    LEAVE_RQ,
-    LEAVE_RS,
+    LEAVE_NOTIFICATION,
+    JOIN_NOTIFICATION,
     JOIN_RQ,
     JOIN_RS,
     USER_LIST_RQ,

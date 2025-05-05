@@ -1,7 +1,6 @@
 package ru.shift.task6.client.socket;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -23,11 +22,14 @@ import ru.shift.commons.models.PayloadType;
 import ru.shift.commons.models.payload.Payload;
 import ru.shift.commons.models.payload.ShutdownNotice;
 import ru.shift.commons.models.payload.responses.ErrorResponse;
+import ru.shift.commons.models.payload.responses.ErrorResponse.Fault;
 import ru.shift.task6.client.exceptions.SocketConnectionException;
+import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;
 
 @Slf4j
-public class SocketConnection implements Closeable {
-        private final Socket socket;
+public class SocketConnection implements Connection {
+
+    private final Socket socket;
     private final PrintWriter writer;
     private Thread listener;
 
@@ -57,8 +59,19 @@ public class SocketConnection implements Closeable {
                     log.trace("Catch incoming message: {}", envelope);
 
                     if (envelope.getHeader().getPayloadType() == PayloadType.ERROR) {
-                        val errorCallback = errorMap.get(envelope.getHeader().getPayloadType());
+                        val typedPayload = (ErrorResponse) envelope.getPayload();
+
+                        if (typedPayload.getCorrectResponseType() == PayloadType.ERROR) {
+                            new ErrorWindowImpl(
+                                    typedPayload.getMessage(),
+                                    false
+                            ).setEnabled(true);
+                        }
+
+                        val errorCallback = errorMap.get(typedPayload.getCorrectResponseType());
                         if (errorCallback != null) {
+                            log.debug("Calling error callback for {}",
+                                    envelope.getHeader().getPayloadType());
                             errorCallback.accept((Envelope<ErrorResponse>) envelope);
                             return;
                         }
@@ -66,6 +79,7 @@ public class SocketConnection implements Closeable {
 
                     val callback = callbackMap.get(envelope.getHeader().getPayloadType());
                     if (callback != null) {
+                        log.debug("Calling callback for {}", envelope.getHeader().getPayloadType());
                         callback.accept(envelope);
                     }
                 }
@@ -81,12 +95,17 @@ public class SocketConnection implements Closeable {
         listener.start();
     }
 
+    @Override
     public void send(PayloadType type, Payload payload) {
         val envelope = new Envelope<>(
                 new Header(type, Instant.now()),
                 payload
         );
         try {
+            if (socket.isClosed()) {
+                log.warn("Socket is closed, cannot send message");
+                return;
+            }
             writer.println(JsonSerializer.serialize(envelope));
             if (writer.checkError()) {
                 throw new SocketConnectionException("Error while sending message");
@@ -96,6 +115,7 @@ public class SocketConnection implements Closeable {
         }
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T extends Payload> void sendAwaitResponse(
             PayloadType requestType,
@@ -105,27 +125,45 @@ public class SocketConnection implements Closeable {
             Consumer<Envelope<ErrorResponse>> onError
     ) {
         callbackMap.put(responseType, env -> {
+            log.debug("Adding callback for {}", responseType);
             onResponse.accept((Envelope<T>) env);
             callbackMap.remove(responseType);
+            errorMap.remove(responseType);
         });
 
         errorMap.put(responseType, env -> {
+            log.debug("Adding error callback for {}", responseType);
             onError.accept(env);
             errorMap.remove(responseType);
+            callbackMap.remove(responseType);
         });
-        send(requestType, payload);
+        try {
+            send(requestType, payload);
+        } catch (SocketConnectionException e) {
+            onError.accept(
+                    new Envelope<>(
+                            new Header(
+                                    PayloadType.ERROR, Instant.now()
+                            ),
+                            new ErrorResponse(responseType, Fault.CLIENT, e.getMessage())
+                    )
+            );
+        }
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T extends Payload> void addPermanentMessageListener(
             PayloadType messageType,
             Consumer<Envelope<T>> onMessage
     ) {
+        log.debug("Adding permanent listener for {}", messageType);
         callbackMap.put(messageType, env -> onMessage.accept((Envelope<T>) env));
     }
 
     @Override
     public void close() throws IOException {
+        log.debug("Closing socket connection");
         listener.interrupt();
         if (socket != null && !socket.isClosed()) {
             socket.close();

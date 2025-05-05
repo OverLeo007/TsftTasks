@@ -35,13 +35,13 @@ public class MessageSender {
             writer.println(json);
         } catch (SerializationException e) {
             log.error("Message serialization error", e);
-            sendError(Fault.SERVER, "Ошибка при сериализации ответа");
+            sendError(envelope.getHeader().getPayloadType(), Fault.SERVER, "Ошибка при сериализации ответа");
         }
     }
 
-    public void sendError(Fault fault, String errorMessage) {
+    public void sendError(PayloadType correctResponseType, Fault fault, String errorMessage) {
         checkWriter();
-        val response = new ErrorResponse(fault, errorMessage);
+        val response = new ErrorResponse(correctResponseType, fault, errorMessage);
         try {
             val header = new Header(PayloadType.ERROR, Instant.now());
             val envelope = new Envelope<>(header, response);

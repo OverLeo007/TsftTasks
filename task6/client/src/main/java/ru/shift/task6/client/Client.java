@@ -1,7 +1,6 @@
 package ru.shift.task6.client;
 
-import java.io.Closeable;
-import java.io.IOException;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -15,20 +14,21 @@ import ru.shift.task6.client.view.windowImpl.NicknameWindowImpl;
 
 @Slf4j
 public class Client {
-    // TODO: Разобраться почему не отображаются джойны и ливы
-    // TODO: Сделать ввод айпи и никнейма по энтеру
-
     private final ResourceManager resourceManager = new ResourceManager();
 
     public void start() {
-        initTheme();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Завершение приложения...");
             resourceManager.close();
         }));
 
-        initConnectionWindow();
+        SwingUtilities.invokeLater(() -> {
+                    initTheme();
+                    initConnectionWindow();
+                }
+        );
+
     }
 
     private void initConnectionWindow() {
@@ -55,7 +55,7 @@ public class Client {
         });
 
         nicknameWindow.setOkButtonListener(nicknamePresenter::tryToAuth);
-        nicknameWindow.setOnCloseAction(onClose(client));
+        nicknameWindow.setOnCloseAction(onClose());
         nicknameWindow.setVisible(true);
     }
 
@@ -65,7 +65,7 @@ public class Client {
 
         chatWindow.addOnMessageListener(chatPresenter::sendMessage);
         chatPresenter.joinChat();
-        chatWindow.setOnCloseAction(onClose(client));
+        chatWindow.setOnCloseAction(onClose());
     }
 
     private void initTheme() {
@@ -76,13 +76,7 @@ public class Client {
         }
     }
 
-    private Runnable onClose(Closeable resource) {
-        return () -> {
-            try {
-                resource.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
+    private Runnable onClose() {
+        return resourceManager::close;
     }
 }

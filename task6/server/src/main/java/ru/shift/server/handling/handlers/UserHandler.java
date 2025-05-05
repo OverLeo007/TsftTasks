@@ -12,7 +12,6 @@ import ru.shift.commons.models.payload.requests.AuthRequest;
 import ru.shift.commons.models.payload.requests.JoinRequest;
 import ru.shift.commons.models.payload.requests.UserListRequest;
 import ru.shift.commons.models.payload.responses.JoinResponse;
-import ru.shift.commons.models.payload.responses.LeaveResponse;
 import ru.shift.commons.models.payload.responses.SuccessAuthResponse;
 import ru.shift.commons.models.payload.responses.UserListResponse;
 import ru.shift.server.handling.handlers.annotations.BroadcastResponse;
@@ -55,7 +54,8 @@ public class UserHandler {
     }
 
     @RequestType(type = PayloadType.JOIN_RQ)
-    @BroadcastResponse(PayloadType.JOIN_RS)
+    @ResponseType(PayloadType.JOIN_RS)
+    @BroadcastResponse(PayloadType.JOIN_NOTIFICATION)
     private JoinResponse handleJoinRequest(JoinRequest request) {
         log.info("User wants to join chat");
         context.checkAuthorized("Перед тем как войти в чат, необходимо ввести никнейм");
