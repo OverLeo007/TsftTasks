@@ -2,10 +2,10 @@ package ru.shift.task6.client.socket;
 
 import java.io.Closeable;
 import java.util.function.Consumer;
-import ru.shift.commons.models.Envelope;
-import ru.shift.commons.models.PayloadType;
-import ru.shift.commons.models.payload.Payload;
-import ru.shift.commons.models.payload.responses.ErrorResponse;
+import ru.shift.task6.commons.models.Envelope;
+import ru.shift.task6.commons.models.PayloadType;
+import ru.shift.task6.commons.models.payload.Payload;
+import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
 
 interface Connection extends Closeable {
 

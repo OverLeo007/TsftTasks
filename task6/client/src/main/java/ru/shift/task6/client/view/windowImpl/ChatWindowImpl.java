@@ -13,9 +13,9 @@ import javax.swing.Timer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.commons.models.payload.ChatMessage;
-import ru.shift.commons.models.payload.ShutdownNotice;
-import ru.shift.commons.models.payload.UserInfo;
+import ru.shift.task6.commons.models.payload.ChatMessage;
+import ru.shift.task6.commons.models.payload.ShutdownNotice;
+import ru.shift.task6.commons.models.payload.UserInfo;
 import ru.shift.task6.client.view.designer.ChatWindow;
 
 @Slf4j

@@ -1,0 +1,16 @@
+package ru.shift.task6.commons.models;
+
+public enum PayloadType {
+    LEAVE_NOTIFICATION,
+    JOIN_NOTIFICATION,
+    JOIN_RQ,
+    JOIN_RS,
+    USER_LIST_RQ,
+    USER_LIST_RS,
+    MESSAGE,
+    ERROR,
+    SUCCESS,
+    AUTH,
+    SHUTDOWN
+}
+

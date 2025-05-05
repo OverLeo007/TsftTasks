@@ -1,9 +1,9 @@
 package ru.shift.task6.client.presenter;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.commons.models.PayloadType;
-import ru.shift.commons.models.payload.responses.JoinNotification;
-import ru.shift.commons.models.payload.responses.LeaveNotification;
+import ru.shift.task6.commons.models.PayloadType;
+import ru.shift.task6.commons.models.payload.responses.JoinNotification;
+import ru.shift.task6.commons.models.payload.responses.LeaveNotification;
 import ru.shift.task6.client.socket.SocketClient;
 import ru.shift.task6.client.view.windowImpl.ChatWindowImpl;
 import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;

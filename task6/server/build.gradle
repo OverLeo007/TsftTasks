@@ -1,27 +1,17 @@
-//plugins {
-//    id 'java'
-//}
-//
-//group = 'ru.shift.task6'
-//version = '1.0'
-//
-//repositories {
-//    mavenCentral()
-//}
-//
-//dependencies {
-//    testImplementation platform('org.junit:junit-bom:5.10.0')
-//    testImplementation 'org.junit.jupiter:junit-jupiter'
-//}
-//
-//test {
-//    useJUnitPlatform()
-//}
-
-
 dependencies {
     implementation project(':task6:commons')
+    shadow project(':task6:commons')
     implementation 'org.yaml:snakeyaml:2.4'
     implementation 'org.reflections:reflections:0.10.2'
+}
 
+shadowJar {
+    archiveBaseName.set(project.name)
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    destinationDirectory.set(file("$rootDir/task6/dist"))
+
+    manifest {
+        attributes 'Main-Class': 'ru.shift.task6.server.Main'
+    }
 }

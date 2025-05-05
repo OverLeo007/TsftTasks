@@ -13,16 +13,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import ru.shift.commons.JsonSerializer;
-import ru.shift.commons.exceptions.DeserializationException;
-import ru.shift.commons.exceptions.SerializationException;
-import ru.shift.commons.models.Envelope;
-import ru.shift.commons.models.Header;
-import ru.shift.commons.models.PayloadType;
-import ru.shift.commons.models.payload.Payload;
-import ru.shift.commons.models.payload.ShutdownNotice;
-import ru.shift.commons.models.payload.responses.ErrorResponse;
-import ru.shift.commons.models.payload.responses.ErrorResponse.Fault;
+import ru.shift.task6.commons.JsonSerializer;
+import ru.shift.task6.commons.exceptions.DeserializationException;
+import ru.shift.task6.commons.exceptions.SerializationException;
+import ru.shift.task6.commons.models.Envelope;
+import ru.shift.task6.commons.models.Header;
+import ru.shift.task6.commons.models.PayloadType;
+import ru.shift.task6.commons.models.payload.Payload;
+import ru.shift.task6.commons.models.payload.ShutdownNotice;
+import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
+import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
 import ru.shift.task6.client.exceptions.SocketConnectionException;
 import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;
 
@@ -55,6 +55,7 @@ public class SocketConnection implements Connection {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
+                    log.trace("Catch raw message: {}", line);
                     val envelope = JsonSerializer.deserialize(line);
                     log.trace("Catch incoming message: {}", envelope);
 
