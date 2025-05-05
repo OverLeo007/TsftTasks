@@ -76,7 +76,6 @@ public class ConnectionWindow extends JFrame {
 
           //---- addressField ----
           addressField.setToolTipText("0.0.0.0:0 - 255.255.255.255:65535");
-          addressField.setText("127.0.0.1:8080");
           panel1.add(addressField, BorderLayout.CENTER);
 
           //---- label1 ----

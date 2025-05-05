@@ -52,7 +52,6 @@ new FormModel {
 						add( new FormComponent( "javax.swing.JTextField" ) {
 							name: "addressField"
 							"toolTipText": "0.0.0.0:0 - 255.255.255.255:65535"
-							"text": "127.0.0.1:8080"
 							auxiliary() {
 								"JavaCodeGenerator.customCreateCode": "new JTextField(21);"
 							}
