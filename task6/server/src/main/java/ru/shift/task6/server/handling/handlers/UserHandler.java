@@ -38,18 +38,12 @@ public class UserHandler {
     private SuccessAuthResponse handleAuthRequest(Envelope<AuthRequest> envelope) {
         UserInfo newUser = envelope.getPayload().getUser();
         log.info("New auth request from {}", newUser.getNickname());
-        if (newUser.getNickname() == null || newUser.getNickname().isBlank()) {
-            throw new UserRegistrationException("Имя пользователя не может быть пустым");
-        } else {
-            val nameF = newUser.getNickname().strip();
-            if (nameF.length() > 20 || nameF.length() < 3) {
-                throw new UserRegistrationException("Имя пользователя должно быть от 3 до 20 символов в длину");
-            }
-        }
-        if (service.contains(newUser)) {
+        validateNewUser(newUser);
+        try {
+            context.setUser(service.addClient(newUser, context));
+        } catch (IllegalStateException e) {
             throw new UserRegistrationException("Имя пользователя уже занято");
         }
-        context.setUser(service.addClient(newUser, context));
         return new SuccessAuthResponse(context.getUser());
     }
 
@@ -76,5 +70,16 @@ public class UserHandler {
     private void handleClientDisconnection(ShutdownNotice notice) throws IOException {
         log.info("Client disconnected");
         context.close();
+    }
+
+    private void validateNewUser(UserInfo newUser) {
+        if (newUser.getNickname() == null || newUser.getNickname().isBlank()) {
+            throw new UserRegistrationException("Имя пользователя не может быть пустым");
+        } else {
+            val nameF = newUser.getNickname().strip();
+            if (nameF.length() > 20 || nameF.length() < 3) {
+                throw new UserRegistrationException("Имя пользователя должно быть от 3 до 20 символов в длину");
+            }
+        }
     }
 }

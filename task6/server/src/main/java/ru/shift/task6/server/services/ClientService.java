@@ -19,7 +19,10 @@ public class ClientService {
     public UserInfo addClient(UserInfo user, ClientContext context) {
         log.debug("Adding new user: {}", user.getNickname());
         val userToAdd = new UserInfo(user.getNickname(), Instant.now());
-        clients.putIfAbsent(userToAdd, context);
+        ClientContext existing = clients.putIfAbsent(userToAdd, context);
+        if (existing != null) {
+            throw new IllegalStateException("User already connected: " + user.getNickname());
+        }
         return userToAdd;
     }
 
@@ -40,9 +43,6 @@ public class ClientService {
         return clients.keySet().stream().toList();
     }
 
-    public boolean contains(UserInfo user) {
-        return clients.keySet().stream().anyMatch(u -> u.getNickname().equals(user.getNickname()));
-    }
 
     public void closeAll() throws IOException {
         log.debug("Closing all user connections");

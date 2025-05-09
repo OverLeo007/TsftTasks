@@ -1,16 +1,15 @@
 package ru.shift.task6.commons.models.payload;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.shift.task6.commons.annotations.PayloadMapping;
-import ru.shift.task6.commons.models.PayloadType;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@PayloadMapping(PayloadType.MESSAGE)
+@JsonTypeName("MESSAGE")
 public class ChatMessage implements Payload {
     private UserInfo sender;
     private String text;

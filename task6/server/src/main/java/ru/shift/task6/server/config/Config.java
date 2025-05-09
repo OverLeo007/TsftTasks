@@ -17,22 +17,24 @@ public class Config {
     private static final Path EXTERNAL_CONFIG_PATH = Path.of(FILENAME);
 
     public static RunProperties loadProperties() throws ConfigurationLoadException {
-        ensureExternalConfigExists();
 
-        try (InputStream externalStream = Files.newInputStream(EXTERNAL_CONFIG_PATH)) {
-            log.info("Загружаем конфигурацию из внешнего файла: {}",
-                    EXTERNAL_CONFIG_PATH.toAbsolutePath());
-            Yaml yaml = new Yaml();
-            RunProperties loadedProperties = yaml.loadAs(externalStream, RunProperties.class);
-            if (loadedProperties == null) {
-                throw new ConfigurationLoadException(
-                        "Файл конфигурации пустой: " + EXTERNAL_CONFIG_PATH);
+        try {
+            ensureExternalConfigExists();
+            try (InputStream externalStream = Files.newInputStream(EXTERNAL_CONFIG_PATH)) {
+                log.info("Загружаем конфигурацию из внешнего файла: {}",
+                        EXTERNAL_CONFIG_PATH.toAbsolutePath());
+                Yaml yaml = new Yaml();
+                RunProperties loadedProperties = yaml.loadAs(externalStream, RunProperties.class);
+                if (loadedProperties == null) {
+                    throw new ConfigurationLoadException(
+                            "Файл конфигурации пустой: " + EXTERNAL_CONFIG_PATH);
+                }
+                validateProperties(loadedProperties);
+                return loadedProperties;
             }
-            validateProperties(loadedProperties);
-            return loadedProperties;
         } catch (Exception e) {
             log.warn("""
-                    Внешний конфигурационный файл повреждён или некорректен:
+                    Произошла проблема при попытке считать конфигурацию из внешнего файла:
                     {}.
                     Будет использована встроенная конфигурация.""", e.getMessage());
 
@@ -55,7 +57,7 @@ public class Config {
         }
     }
 
-    private static void ensureExternalConfigExists() throws ConfigurationLoadException {
+    private static void ensureExternalConfigExists() throws IOException {
         if (!Files.exists(EXTERNAL_CONFIG_PATH)) {
             try (InputStream internalStream = Config.class.getClassLoader()
                     .getResourceAsStream(FILENAME)) {
@@ -66,9 +68,6 @@ public class Config {
                 log.warn(
                         "Создан внешний файл конфигурации по умолчанию. Вы можете отредактировать его: {}",
                         EXTERNAL_CONFIG_PATH.toAbsolutePath());
-            } catch (IOException e) {
-                throw new ConfigurationLoadException("Не удалось создать внешний файл конфигурации",
-                        e);
             }
         }
     }

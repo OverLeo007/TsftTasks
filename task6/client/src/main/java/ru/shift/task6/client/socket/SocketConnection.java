@@ -25,6 +25,8 @@ import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
 import ru.shift.task6.client.exceptions.SocketConnectionException;
 import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;
+import ru.shift.task6.commons.models.payload.responses.JoinNotification;
+import ru.shift.task6.commons.models.payload.responses.JoinResponse;
 
 @Slf4j
 public class SocketConnection implements Connection {
@@ -159,7 +161,21 @@ public class SocketConnection implements Connection {
             Consumer<Envelope<T>> onMessage
     ) {
         log.debug("Adding permanent listener for {}", messageType);
-        callbackMap.put(messageType, env -> onMessage.accept((Envelope<T>) env));
+        // FIXME: костыль
+        callbackMap.put(messageType, env -> {
+            if (env.getHeader().getPayloadType() == PayloadType.JOIN_NOTIFICATION
+                    && env.getPayload() instanceof JoinResponse
+            ) {
+                onMessage.accept(
+                        (Envelope<T>) new Envelope<>(
+                                new Header(PayloadType.JOIN_NOTIFICATION, env.getHeader().getSendTime()),
+                                new JoinNotification(((JoinResponse) env.getPayload()).getUser())
+                        )
+                );
+            } else {
+                onMessage.accept((Envelope<T>) env);
+            }
+        });
     }
 
     @Override

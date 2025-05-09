@@ -43,7 +43,7 @@ public class ChatPresenter {
         client.sendUserListRequest(
                 window::updateSidebar,
                 error -> {
-//                    new ErrorWindowImpl(window, error.getMessage(), false);
+                    new ErrorWindowImpl(window, error.getMessage(), false);
                     log.error("Error while getting user list: {}", error.getMessage());
                 }
         );

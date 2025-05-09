@@ -1,8 +1,6 @@
 package ru.shift.task6.server.handling;
 
-import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -36,11 +34,8 @@ public class ClientHandler implements Runnable {
             while ((line = context.getReader().readLine()) != null) {
                 requestHandler.dispatch(line);
             }
-        } catch (SocketException ignored) {
-        } catch (IOException e) {
-            log.error("IO error", e);
         } catch (Exception e) {
-            log.warn("Client disconnected with unknown error", e);
+            log.warn("Client disconnected with error", e);
         } finally {
             log.info("Connection closed");
         }
