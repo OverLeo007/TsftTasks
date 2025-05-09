@@ -31,11 +31,18 @@ public class ClientContext implements AutoCloseable {
     private final BufferedReader reader;
     @Getter
     private UserInfo user;
+
     private boolean authorized;
+
     @Getter
     @Setter
     private boolean joined;
+
     private final Consumer<UserInfo> onCloseOp;
+
+    @Getter
+    private boolean closed = false;
+
     public ClientContext(
             Socket socket,
             Consumer<Envelope<? extends Payload>> broadcastConsumer,
@@ -62,6 +69,7 @@ public class ClientContext implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
+        closed = true;
         if (socket.isClosed()) {
             log.debug("Socket already closed");
             return;

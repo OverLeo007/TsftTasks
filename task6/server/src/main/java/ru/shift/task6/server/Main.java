@@ -1,5 +1,6 @@
 package ru.shift.task6.server;
 
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -35,13 +36,18 @@ public class Main {
 
     private static void startExitListener() {
         Thread exitThread = new Thread(() -> {
-            Scanner scanner = new Scanner(System.in);
-            while (true) {
-                String command = scanner.nextLine();
-                if ("exit".equalsIgnoreCase(command.trim())) {
-                    log.info("Exit command handled. Shutting down...");
-                    System.exit(0);
+            try {
+                Scanner scanner = new Scanner(System.in);
+                while (true) {
+                    String command = scanner.nextLine();
+                    if ("exit".equalsIgnoreCase(command.trim())) {
+                        log.info("Exit command handled. Shutting down...");
+                        System.exit(0);
+                    }
                 }
+            } catch (NoSuchElementException e) {
+                log.warn("Closed by system signal");
+                System.exit(0);
             }
         });
         exitThread.setName("ServerExitListener");

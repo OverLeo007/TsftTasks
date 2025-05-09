@@ -31,7 +31,7 @@ public class ClientHandler implements Runnable {
             val requestHandler = new RawRequestHandler(context, service);
 
             String line;
-            while ((line = context.getReader().readLine()) != null) {
+            while (!context.isClosed() && (line = context.getReader().readLine()) != null) {
                 requestHandler.dispatch(line);
             }
         } catch (Exception e) {

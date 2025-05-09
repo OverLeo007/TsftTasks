@@ -1,37 +1,36 @@
 package ru.shift.task6.server.handling.raw;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
-import org.reflections.Reflections;
+import lombok.val;
 import ru.shift.task6.commons.misc.TriConsumer;
 import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.Header;
 import ru.shift.task6.commons.models.PayloadType;
+import ru.shift.task6.commons.models.payload.ChatMessage;
 import ru.shift.task6.commons.models.payload.Payload;
-import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
+import ru.shift.task6.commons.models.payload.UserInfo;
+import ru.shift.task6.commons.models.payload.requests.AuthRequest;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
-import ru.shift.task6.server.handling.handlers.annotations.BroadcastResponse;
-import ru.shift.task6.server.handling.handlers.annotations.Handler;
-import ru.shift.task6.server.handling.handlers.annotations.RequestType;
-import ru.shift.task6.server.handling.handlers.annotations.ResponseType;
+import ru.shift.task6.commons.models.payload.responses.JoinNotification;
+import ru.shift.task6.commons.models.payload.responses.JoinResponse;
+import ru.shift.task6.commons.models.payload.responses.SuccessAuthResponse;
+import ru.shift.task6.commons.models.payload.responses.UserListResponse;
 import ru.shift.task6.server.client.ClientContext;
-import ru.shift.task6.server.services.ClientService;
 import ru.shift.task6.server.exceptions.NoHandlerFoundException;
-import ru.shift.task6.server.exceptions.client.AbstractClientFaultException;
+import ru.shift.task6.server.exceptions.client.ForbiddenException;
+import ru.shift.task6.server.exceptions.client.UserRegistrationException;
+import ru.shift.task6.server.services.ClientService;
 
 @Slf4j
 public class HandlersRegistry {
-
-    private static final String HANDLERS_CLASSPATH = "ru.shift.task6.server.handling.handlers";
-
     private final Map<PayloadType, Consumer<Envelope<?>>> handlers = new EnumMap<>(PayloadType.class);
+
+    private final ClientContext context;
+    private final ClientService service;
 
     private final BiConsumer<PayloadType, Payload> responseSender;
     private final BiConsumer<PayloadType, Payload> broadcaster;
@@ -48,7 +47,10 @@ public class HandlersRegistry {
         this.responseSender = responseSender;
         this.errorResponseSender = errorResponseSender;
         this.broadcaster = broadcaster;
-        registerHandlers(context, service);
+        this.context = context;
+        this.service = service;
+
+        createHandlers();
     }
 
     public Consumer<Envelope<?>> getHandler(PayloadType type) {
@@ -61,88 +63,83 @@ public class HandlersRegistry {
         return handlers.get(type);
     }
 
-    private void registerHandlers(ClientContext context, ClientService service) {
-
-        Reflections reflections = new Reflections(HANDLERS_CLASSPATH);
-        Set<Class<?>> handlerClasses = reflections.getTypesAnnotatedWith(Handler.class);
-
-        for (Class<?> clazz : handlerClasses) {
-            log.trace("Creating handlers of {} instance", clazz.getSimpleName());
-            try {
-                Object instance;
-                if (Arrays.stream(clazz.getDeclaredFields()).anyMatch(f -> f.getType().equals(ClientService.class))) {
-                    instance = clazz.getDeclaredConstructor(ClientContext.class, ClientService.class)
-                            .newInstance(context, service);
-                } else {
-                    instance = clazz.getDeclaredConstructor(ClientContext.class)
-                            .newInstance(context);
-                }
-                for (Method method : clazz.getDeclaredMethods()) {
-                    if (method.isAnnotationPresent(RequestType.class)) {
-                        PayloadType type = method.getAnnotation(RequestType.class).type();
-                        log.trace("Creating handler for {}", type);
-                        method.setAccessible(true);
-                        handlers.put(type, createHandler(instance, method));
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to instantiate controller: " + clazz, e);
-            }
-        }
+    private void createHandlers() {
+        handlers.put(PayloadType.MESSAGE, createMessageHandler());
+        handlers.put(PayloadType.AUTH, createAuthRequestHandler());
+        handlers.put(PayloadType.JOIN_RQ, createJoinRequestHandler());
+        handlers.put(PayloadType.USER_LIST_RQ, createUserListRequestHandler());
+        handlers.put(PayloadType.SHUTDOWN, createClientDisconnectionHandler());
     }
 
-    private Consumer<Envelope<?>> createHandler(Object instance, Method method) {
-        return (env) -> {
-            PayloadType correctResponseType = PayloadType.ERROR;
+    private Consumer<Envelope<?>> createMessageHandler() {
+        return env -> {
+            val chatMessage = (ChatMessage) env.getPayload();
+            context.checkAuthorized("Нельзя отправить сообщения без ввода имени");
+            context.checkJoined("Перед отправкой сообщения необходимо присоединиться к чату");
+            if (!chatMessage.getSender().getNickname().equals(context.getUser().getNickname())) {
+                throw new ForbiddenException("Нельзя отправлять сообщения от чужого имени");
+            }
+            broadcaster.accept(PayloadType.MESSAGE, chatMessage);
+        };
+    }
+
+    private Consumer<Envelope<?>> createAuthRequestHandler() {
+        return env -> {
+            UserInfo newUser = ((AuthRequest) env.getPayload()).getUser();
+            log.info("New auth request from {}", newUser.getNickname());
+            validateNewUser(newUser);
             try {
-                Object arg = getMethodArg(method, env);
+                context.setUser(service.addClient(newUser, context));
+            } catch (IllegalStateException e) {
+                throw new UserRegistrationException("Имя пользователя уже занято");
+            }
+            responseSender.accept(PayloadType.SUCCESS, new SuccessAuthResponse(context.getUser()));
+        };
+    }
 
-                Object result = method.invoke(instance, arg);
-                if (result != null) {
-                    if (method.isAnnotationPresent(ResponseType.class)) {
-                        PayloadType responseType = method.getAnnotation(ResponseType.class).value();
-                        correctResponseType = responseType;
-                        responseSender.accept(responseType, (Payload) result);
-                    }
-                    if (method.isAnnotationPresent(BroadcastResponse.class)) {
-                        PayloadType responseType = method.getAnnotation(BroadcastResponse.class).value();
-                        correctResponseType = responseType;
-                        broadcaster.accept(responseType, (Payload) result);
-                    }
-                }
-            } catch (InvocationTargetException e) {
-                Throwable cause = e.getCause();
+    private Consumer<Envelope<?>> createJoinRequestHandler() {
+        return env -> {
+            log.info("User wants to join chat");
+            context.checkAuthorized("Перед тем как войти в чат, необходимо ввести никнейм");
+            context.setJoined(true);
+            responseSender.accept(PayloadType.JOIN_RS, new JoinResponse(context.getUser()));
+            broadcaster.accept(PayloadType.JOIN_NOTIFICATION, new JoinNotification(context.getUser()));
+        };
+    }
 
-                log.debug("Error while handling message: {}", cause.getMessage());
+    private Consumer<Envelope<?>> createUserListRequestHandler() {
+        return env -> {
+            log.info("User wants to get active users list");
+            context.checkAuthorized("Для совершения этого запроса необходимо ввести никнейм");
+            context.checkJoined("Вы должны быть в чате чтобы получить список пользователей.");
+            responseSender.accept(PayloadType.USER_LIST_RS, new UserListResponse(service.getAllUsers()));
+        };
+    }
 
-                ErrorResponse.Fault fault = (cause instanceof AbstractClientFaultException)
-                        ? Fault.CLIENT
-                        : Fault.SERVER;
-
-                errorResponseSender.accept(correctResponseType, fault, cause);
-
-            } catch (Exception e) {
-                errorResponseSender.accept(correctResponseType, Fault.SERVER, e);
+    private Consumer<Envelope<?>> createClientDisconnectionHandler() {
+        return env -> {
+            log.info("Client disconnected");
+            try {
+                context.close();
+            } catch (IOException e) {
+                log.warn("Error while closing client connection: ", e);
             }
         };
     }
 
-    private Object getMethodArg(Method method, Envelope<?> env) {
-        RequestType requestType = method.getAnnotation(RequestType.class);
-        Class<?> accessLevel = requestType != null ? requestType.accessLevel() : Payload.class;
-
-        Object arg;
-        if (accessLevel.equals(Header.class)) {
-            arg = env.getHeader();
-        } else if (accessLevel.equals(Envelope.class)) {
-            arg = env;
-        } else {
-            arg = env.getPayload();
-        }
-        return arg;
-    }
 
     private Consumer<Envelope<?>> createErrorHandler(PayloadType correctResponseType, Throwable cause) {
         return  env -> errorResponseSender.accept(correctResponseType, Fault.SERVER, cause);
+    }
+
+    private void validateNewUser(UserInfo newUser) {
+        if (newUser.getNickname() == null || newUser.getNickname().isBlank()) {
+            throw new UserRegistrationException("Имя пользователя не может быть пустым");
+        } else {
+            val nameF = newUser.getNickname().strip();
+            if (nameF.length() > 20 || nameF.length() < 3) {
+                throw new UserRegistrationException("Имя пользователя должно быть от 3 до 20 символов в длину");
+            }
+        }
     }
 }
