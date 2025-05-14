@@ -1,14 +1,14 @@
 package ru.shift.task6.server.config;
 
+import lombok.extern.slf4j.Slf4j;
+import org.yaml.snakeyaml.Yaml;
+import ru.shift.task6.server.exceptions.ConfigurationLoadException;
+import ru.shift.task6.server.exceptions.PropertiesArgumentException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.yaml.snakeyaml.Yaml;
-import ru.shift.task6.server.exceptions.ConfigurationLoadException;
-import ru.shift.task6.server.exceptions.PropertiesArgumentException;
 
 @Slf4j
 public class Config {
@@ -73,7 +73,7 @@ public class Config {
     }
 
     private static void validateProperties(RunProperties properties) {
-        val server = properties.getServer();
+        final var server = properties.getServer();
         if (server.getPort() <= 1024 || server.getPort() > 65535) {
             throw new PropertiesArgumentException("Некорректный номер порта: " + server.getPort() +
                     ". Порт должен быть в диапазоне от 1025 до 65535");

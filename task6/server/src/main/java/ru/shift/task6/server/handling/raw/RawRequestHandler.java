@@ -9,6 +9,7 @@ import ru.shift.task6.commons.models.PayloadType;
 import ru.shift.task6.commons.models.payload.Payload;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
+import ru.shift.task6.server.exceptions.client.AbstractClientFaultException;
 import ru.shift.task6.server.handling.MessageSender;
 import ru.shift.task6.server.client.ClientContext;
 import ru.shift.task6.server.services.ClientService;
@@ -38,7 +39,7 @@ public class RawRequestHandler {
     public void dispatch(String json) {
         try {
             dispatch(JsonSerializer.deserialize(json));
-        } catch (DeserializationException e) {
+        } catch (DeserializationException | AbstractClientFaultException e) {
             createAndSendErrorResponse(PayloadType.ERROR, Fault.CLIENT, e);
         }
     }

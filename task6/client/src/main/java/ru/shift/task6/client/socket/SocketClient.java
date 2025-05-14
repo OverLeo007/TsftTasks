@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import ru.shift.task6.commons.models.PayloadType;
 import ru.shift.task6.commons.models.payload.ChatMessage;
 import ru.shift.task6.commons.models.payload.Payload;
@@ -23,7 +22,7 @@ import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
 import ru.shift.task6.commons.models.payload.responses.JoinResponse;
 import ru.shift.task6.commons.models.payload.responses.SuccessAuthResponse;
 import ru.shift.task6.commons.models.payload.responses.UserListResponse;
-import ru.shift.task6.client.exceptions.SocketConnectionException;
+import ru.shift.task6.commons.exceptions.SocketConnectionException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -50,7 +49,7 @@ public class SocketClient implements Closeable {
                 new AuthRequest(new UserInfo(nickname, null)),
                 PayloadType.SUCCESS,
                 responseEnv -> {
-                    val payload = (SuccessAuthResponse) responseEnv.getPayload();
+                    final var payload = (SuccessAuthResponse) responseEnv.getPayload();
                     onSuccess.accept(payload);
                     user = payload.getAuthUser();
                 },
@@ -83,7 +82,7 @@ public class SocketClient implements Closeable {
                 new UserListRequest(),
                 PayloadType.USER_LIST_RS,
                 responseEnv -> {
-                    val typedPayload = (UserListResponse) responseEnv.getPayload();
+                    final var typedPayload = (UserListResponse) responseEnv.getPayload();
                     onSuccess.accept(typedPayload.getUsers());
                 },
                 errorEnv -> onError.accept(errorEnv.getPayload())

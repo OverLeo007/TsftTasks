@@ -1,4 +1,4 @@
-package ru.shift.task6.client.exceptions;
+package ru.shift.task6.commons.exceptions;
 
 public class SocketConnectionException extends RuntimeException {
 

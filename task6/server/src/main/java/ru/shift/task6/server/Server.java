@@ -1,20 +1,19 @@
 package ru.shift.task6.server;
 
+import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.commons.models.Envelope;
+import ru.shift.task6.commons.models.Header;
+import ru.shift.task6.commons.models.PayloadType;
+import ru.shift.task6.commons.models.payload.ShutdownNotice;
+import ru.shift.task6.server.config.RunProperties;
+import ru.shift.task6.server.handling.ClientHandler;
+import ru.shift.task6.server.services.ClientService;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import ru.shift.task6.server.config.RunProperties;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.Header;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.Payload;
-import ru.shift.task6.commons.models.payload.ShutdownNotice;
-import ru.shift.task6.server.handling.ClientHandler;
-import ru.shift.task6.server.services.ClientService;
 
 @Slf4j
 public class Server {
@@ -43,7 +42,7 @@ public class Server {
 
             while (!isClosed.get()) {
                 Socket socket = serverSocket.accept();
-                val thread = new Thread(new ClientHandler(socket, clientService, this::broadcast));
+                final var thread = new Thread(new ClientHandler(socket, clientService));
                 thread.start();
             }
         } catch (IOException e) {
@@ -51,14 +50,10 @@ public class Server {
         }
     }
 
-    private void broadcast(Envelope<? extends Payload> envelope) {
-        clientService.sendAll(envelope);
-    }
-
     private void onShutdownBroadcast() {
-        val header = new Header(PayloadType.SHUTDOWN, Instant.now());
-        val payload = new ShutdownNotice("Сервер завершил работу");
-        broadcast(new Envelope<>(header, payload));
+        final var header = new Header(PayloadType.SHUTDOWN, Instant.now());
+        final var payload = new ShutdownNotice("Сервер завершил работу");
+        clientService.sendAll(new Envelope<>(header, payload));
     }
 }
 

@@ -1,12 +1,6 @@
 package ru.shift.task6.server.handling.raw;
 
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import ru.shift.task6.commons.misc.TriConsumer;
 import ru.shift.task6.commons.models.Envelope;
 import ru.shift.task6.commons.models.PayloadType;
@@ -24,6 +18,12 @@ import ru.shift.task6.server.exceptions.NoHandlerFoundException;
 import ru.shift.task6.server.exceptions.client.ForbiddenException;
 import ru.shift.task6.server.exceptions.client.UserRegistrationException;
 import ru.shift.task6.server.services.ClientService;
+
+import java.io.IOException;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @Slf4j
 public class HandlersRegistry {
@@ -73,7 +73,7 @@ public class HandlersRegistry {
 
     private Consumer<Envelope<?>> createMessageHandler() {
         return env -> {
-            val chatMessage = (ChatMessage) env.getPayload();
+            final var chatMessage = (ChatMessage) env.getPayload();
             context.checkAuthorized("Нельзя отправить сообщения без ввода имени");
             context.checkJoined("Перед отправкой сообщения необходимо присоединиться к чату");
             if (!chatMessage.getSender().getNickname().equals(context.getUser().getNickname())) {
@@ -136,7 +136,7 @@ public class HandlersRegistry {
         if (newUser.getNickname() == null || newUser.getNickname().isBlank()) {
             throw new UserRegistrationException("Имя пользователя не может быть пустым");
         } else {
-            val nameF = newUser.getNickname().strip();
+            final var nameF = newUser.getNickname().strip();
             if (nameF.length() > 20 || nameF.length() < 3) {
                 throw new UserRegistrationException("Имя пользователя должно быть от 3 до 20 символов в длину");
             }

@@ -3,7 +3,6 @@ package ru.shift.task6.server;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import ru.shift.task6.server.config.Config;
 import ru.shift.task6.server.config.RunProperties;
 import ru.shift.task6.server.exceptions.ConfigurationLoadException;
@@ -13,8 +12,8 @@ public class Main {
 
     public static void main(String[] args) {
         log.info("Loading configuration...");
-        val properties = loadConfig();
-        val port = properties.getServer().getPort();
+        final var properties = loadConfig();
+        final var port = properties.getServer().getPort();
         log.info("Starting server at port: {}", port);
         startExitListener();
         new Server(properties).start();

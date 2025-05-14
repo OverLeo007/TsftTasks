@@ -2,7 +2,6 @@ dependencies {
     implementation project(':task6:commons')
     shadow project(':task6:commons')
     implementation 'org.yaml:snakeyaml:2.4'
-    implementation 'org.reflections:reflections:0.10.2'
 }
 
 shadowJar {

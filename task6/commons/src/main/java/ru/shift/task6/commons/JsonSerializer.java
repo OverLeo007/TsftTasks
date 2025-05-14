@@ -1,7 +1,6 @@
 package ru.shift.task6.commons;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -35,19 +34,6 @@ public final class JsonSerializer {
     @SuppressWarnings("unchecked")
     public static Envelope<? extends Payload> deserialize(String json)
             throws DeserializationException {
-        JsonNode root;
-        try {
-            root = mapper.readTree(json);
-        } catch (JsonProcessingException e) {
-            throw new DeserializationException(e);
-        }
-
-        JsonNode headerNode = root.get("header");
-
-        if (headerNode == null || headerNode.get("payloadType") == null) {
-            throw new DeserializationException("Incorrect JSON: no 'payloadType' field ");
-        }
-
         try {
             return mapper.readValue(json, Envelope.class);
         } catch (JsonProcessingException e) {

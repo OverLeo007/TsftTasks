@@ -1,34 +1,32 @@
 package ru.shift.task6.server.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.commons.channel.ChatChannel;
+import ru.shift.task6.commons.channel.ChatReader;
+import ru.shift.task6.commons.exceptions.SocketConnectionException;
 import ru.shift.task6.commons.models.Envelope;
 import ru.shift.task6.commons.models.PayloadType;
 import ru.shift.task6.commons.models.payload.Payload;
 import ru.shift.task6.commons.models.payload.UserInfo;
 import ru.shift.task6.commons.models.payload.responses.LeaveNotification;
 import ru.shift.task6.server.exceptions.client.ForbiddenException;
-import ru.shift.task6.server.handling.MessageSender;
 import ru.shift.task6.server.exceptions.client.UnauthorizedException;
+import ru.shift.task6.server.handling.MessageSender;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.time.Instant;
+import java.util.function.Consumer;
 
 @Slf4j
 public class ClientContext implements AutoCloseable {
 
-    private final Socket socket;
     @Getter
     private final MessageSender sender;
-    @Getter
-    private final BufferedReader reader;
+
+    private final ChatChannel chatChannel;
     @Getter
     private UserInfo user;
 
@@ -48,13 +46,9 @@ public class ClientContext implements AutoCloseable {
             Consumer<Envelope<? extends Payload>> broadcastConsumer,
             Consumer<UserInfo> onCloseOp
     )
-            throws IOException {
-        this.socket = socket;
-        this.sender = new MessageSender(
-                broadcastConsumer,
-                new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true)
-        );
-        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            throws SocketConnectionException {
+        chatChannel = new ChatChannel(socket);
+        this.sender = new MessageSender(broadcastConsumer, chatChannel);
         this.onCloseOp = onCloseOp;
 
     }
@@ -70,7 +64,7 @@ public class ClientContext implements AutoCloseable {
     @Override
     public void close() throws IOException {
         closed = true;
-        if (socket.isClosed()) {
+        if (chatChannel.isClosed()) {
             log.debug("Socket already closed");
             return;
         }
@@ -82,9 +76,9 @@ public class ClientContext implements AutoCloseable {
             onCloseOp.accept(user);
 
         } else {
-            log.debug("Closing context for socket: {}", socket);
+            log.debug("Closing context for socket: {}", chatChannel);
         }
-        socket.close();
+        chatChannel.close();
     }
 
     public void checkAuthorized(String msg) {
@@ -98,4 +92,9 @@ public class ClientContext implements AutoCloseable {
             throw new ForbiddenException(msg);
         }
     }
+
+    public ChatReader getReader() {
+        return chatChannel;
+    }
+
 }

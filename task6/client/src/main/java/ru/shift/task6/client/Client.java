@@ -1,9 +1,6 @@
 package ru.shift.task6.client;
 
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import ru.shift.task6.client.presenter.ChatPresenter;
 import ru.shift.task6.client.presenter.ConnectionPresenter;
 import ru.shift.task6.client.presenter.NicknamePresenter;
@@ -11,6 +8,8 @@ import ru.shift.task6.client.socket.SocketClient;
 import ru.shift.task6.client.view.windowImpl.ChatWindowImpl;
 import ru.shift.task6.client.view.windowImpl.ConnectionWindowImpl;
 import ru.shift.task6.client.view.windowImpl.NicknameWindowImpl;
+
+import javax.swing.*;
 
 @Slf4j
 public class Client {
@@ -32,8 +31,8 @@ public class Client {
     }
 
     private void initConnectionWindow() {
-        val connectionWindow = new ConnectionWindowImpl();
-        val connectionPresenter = new ConnectionPresenter(connectionWindow, client -> {
+        final var connectionWindow = new ConnectionWindowImpl();
+        final var connectionPresenter = new ConnectionPresenter(connectionWindow, client -> {
 
             resourceManager.register(client);
             connectionWindow.dispose();
@@ -46,8 +45,8 @@ public class Client {
     }
 
     private void initNicknameWindow(SocketClient client) {
-        val nicknameWindow = new NicknameWindowImpl();
-        val nicknamePresenter = new NicknamePresenter(nicknameWindow, client, () -> {
+        final var nicknameWindow = new NicknameWindowImpl();
+        final var nicknamePresenter = new NicknamePresenter(nicknameWindow, client, () -> {
 
             nicknameWindow.dispose();
 
@@ -60,8 +59,8 @@ public class Client {
     }
 
     private void initChatWindow(SocketClient client) {
-        val chatWindow = new ChatWindowImpl();
-        val chatPresenter = new ChatPresenter(chatWindow, client);
+        final var chatWindow = new ChatWindowImpl();
+        final var chatPresenter = new ChatPresenter(chatWindow, client);
 
         chatWindow.addOnMessageListener(chatPresenter::sendMessage);
         chatPresenter.joinChat();

@@ -1,15 +1,15 @@
 package ru.shift.task6.server.services;
 
+import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.commons.models.Envelope;
+import ru.shift.task6.commons.models.payload.UserInfo;
+import ru.shift.task6.server.client.ClientContext;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.payload.UserInfo;
-import ru.shift.task6.server.client.ClientContext;
 
 @Slf4j
 public class ClientService {
@@ -18,7 +18,7 @@ public class ClientService {
 
     public UserInfo addClient(UserInfo user, ClientContext context) {
         log.debug("Adding new user: {}", user.getNickname());
-        val userToAdd = new UserInfo(user.getNickname(), Instant.now());
+        final var userToAdd = new UserInfo(user.getNickname(), Instant.now());
         ClientContext existing = clients.putIfAbsent(userToAdd, context);
         if (existing != null) {
             throw new IllegalStateException("User already connected: " + user.getNickname());
