@@ -41,7 +41,7 @@ public class ChatPresenter {
 
     private void getActiveUsers() {
         client.sendUserListRequest(
-                window::updateSidebar,
+                response -> window.updateSidebar(response.getUsers()),
                 error -> {
                     new ErrorWindowImpl(window, error.getMessage(), false);
                     log.error("Error while getting user list: {}", error.getMessage());
