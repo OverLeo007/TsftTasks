@@ -1,8 +1,10 @@
-package ru.shift.task6.server.handling;
+package ru.shift.task6.server.client;
 
+import java.time.Instant;
+import java.util.Objects;
+import java.util.function.Consumer;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.JsonSerializer;
 import ru.shift.task6.commons.channel.ChatWriter;
 import ru.shift.task6.commons.exceptions.SerializationException;
 import ru.shift.task6.commons.models.Envelope;
@@ -11,10 +13,6 @@ import ru.shift.task6.commons.models.PayloadType;
 import ru.shift.task6.commons.models.payload.Payload;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
-
-import java.time.Instant;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 @Slf4j
 public class MessageSender {
@@ -31,8 +29,7 @@ public class MessageSender {
 
     public void send(Envelope<? extends Payload> envelope) {
         try {
-            final var json = JsonSerializer.serialize(envelope);
-            writer.printLine(json);
+            writer.sendEnvelope(envelope);
         } catch (SerializationException e) {
             log.error("Message serialization error", e);
             sendError(envelope.getHeader().getPayloadType(), Fault.SERVER, "Ошибка при сериализации ответа");
@@ -44,8 +41,7 @@ public class MessageSender {
         try {
             final var header = new Header(PayloadType.ERROR, Instant.now());
             final var envelope = new Envelope<>(header, response);
-            final var json = JsonSerializer.serialize(envelope);
-            writer.printLine(json);
+            writer.sendEnvelope(envelope);
         } catch (Exception e) {
             log.error("Ошибка при отправке ошибки клиенту", e);
         }

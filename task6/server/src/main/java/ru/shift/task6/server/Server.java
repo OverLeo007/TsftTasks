@@ -6,7 +6,7 @@ import ru.shift.task6.commons.models.Header;
 import ru.shift.task6.commons.models.PayloadType;
 import ru.shift.task6.commons.models.payload.ShutdownNotice;
 import ru.shift.task6.server.config.RunProperties;
-import ru.shift.task6.server.handling.ClientHandler;
+import ru.shift.task6.server.client.ClientMessageListener;
 import ru.shift.task6.server.services.ClientService;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class Server {
 
             while (!isClosed.get()) {
                 Socket socket = serverSocket.accept();
-                final var thread = new Thread(new ClientHandler(socket, clientService));
+                final var thread = new Thread(new ClientMessageListener(socket, clientService));
                 thread.start();
             }
         } catch (IOException e) {

@@ -1,12 +1,22 @@
 package ru.shift.task6.commons.channel;
 
-import ru.shift.task6.commons.exceptions.SocketConnectionException;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import ru.shift.task6.commons.JsonSerializer;
+import ru.shift.task6.commons.exceptions.DeserializationException;
+import ru.shift.task6.commons.exceptions.SerializationException;
+import ru.shift.task6.commons.exceptions.SocketConnectionException;
+import ru.shift.task6.commons.models.Envelope;
+import ru.shift.task6.commons.models.payload.Payload;
 
 public class ChatChannel implements Closeable, ChatReader, ChatWriter {
+
     private final Socket socket;
     private final BufferedReader reader;
     private final PrintWriter writer;
@@ -25,17 +35,17 @@ public class ChatChannel implements Closeable, ChatReader, ChatWriter {
     }
 
     @Override
-    public String readline() throws IOException {
-        return reader.readLine();
+    public Envelope<? extends Payload> readEnvelope() throws IOException, DeserializationException {
+        return JsonSerializer.deserialize(reader.readLine());
     }
 
     @Override
-    public void printLine(String line) {
-        writer.println(line);
+    public void sendEnvelope(Envelope<?> envelope) throws SerializationException {
+        writer.println(JsonSerializer.serialize(envelope));
     }
 
     @Override
-    public boolean checkReaderError() {
+    public boolean checkWriterError() {
         return writer.checkError();
     }
 
@@ -53,7 +63,7 @@ public class ChatChannel implements Closeable, ChatReader, ChatWriter {
     @Override
     public String toString() {
         return "ChatChannel{" +
-                "socket=" + socket +
+                "socket=" + socket.getInetAddress() + ":" + socket.getPort() +
                 '}';
     }
 }

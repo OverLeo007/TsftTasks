@@ -1,7 +1,10 @@
 package ru.shift.task6.commons.channel;
 
-public interface ChatWriter {
-    void printLine(String line);
+import ru.shift.task6.commons.exceptions.SerializationException;
+import ru.shift.task6.commons.models.Envelope;
 
-    boolean checkReaderError();
+public interface ChatWriter {
+    void sendEnvelope(Envelope<?> envelope) throws SerializationException;
+
+    boolean checkWriterError();
 }

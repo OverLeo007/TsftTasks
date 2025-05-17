@@ -13,7 +13,6 @@ import ru.shift.task6.commons.models.payload.UserInfo;
 import ru.shift.task6.commons.models.payload.responses.LeaveNotification;
 import ru.shift.task6.server.exceptions.client.ForbiddenException;
 import ru.shift.task6.server.exceptions.client.UnauthorizedException;
-import ru.shift.task6.server.handling.MessageSender;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -69,14 +68,14 @@ public class ClientContext implements AutoCloseable {
             return;
         }
         if (authorized) {
-            log.debug("Closing context for user: {}", user.getNickname());
+            log.debug("Closing clientContext for user: {}", user.getNickname());
             if (joined) {
                 sender.broadcast(PayloadType.LEAVE_NOTIFICATION, new LeaveNotification(user));
             }
             onCloseOp.accept(user);
 
         } else {
-            log.debug("Closing context for socket: {}", chatChannel);
+            log.debug("Closing clientContext for socket: {}", chatChannel);
         }
         chatChannel.close();
     }

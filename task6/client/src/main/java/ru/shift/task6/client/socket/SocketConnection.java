@@ -1,9 +1,14 @@
 package ru.shift.task6.client.socket;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;
 import ru.shift.task6.commons.channel.ChatChannel;
-import ru.shift.task6.commons.JsonSerializer;
 import ru.shift.task6.commons.exceptions.DeserializationException;
 import ru.shift.task6.commons.exceptions.SerializationException;
 import ru.shift.task6.commons.exceptions.SocketConnectionException;
@@ -14,13 +19,6 @@ import ru.shift.task6.commons.models.payload.Payload;
 import ru.shift.task6.commons.models.payload.ShutdownNotice;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
 import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
-
-import java.io.IOException;
-import java.net.Socket;
-import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 @Slf4j
 public class SocketConnection implements Connection {
@@ -42,10 +40,8 @@ public class SocketConnection implements Connection {
     private void listen() {
         listener = new Thread(() -> {
             try {
-                String line;
-                while ((line = chatChannel.readline()) != null) {
-                    log.trace("Catch raw message: {}", line);
-                    final var envelope = JsonSerializer.deserialize(line);
+                Envelope<?> envelope;
+                while ((envelope = chatChannel.readEnvelope()) != null) {
                     log.trace("Catch incoming message: {}", envelope);
 
                     if (envelope.getHeader().getPayloadType() == PayloadType.ERROR) {
@@ -93,8 +89,8 @@ public class SocketConnection implements Connection {
                 log.warn("Socket is closed, cannot send message");
                 return;
             }
-            chatChannel.printLine(JsonSerializer.serialize(envelope));
-            if (chatChannel.checkReaderError()) {
+            chatChannel.sendEnvelope(envelope);
+            if (chatChannel.checkWriterError()) {
                 throw new SocketConnectionException("Error while sending message");
             }
         } catch (SerializationException e) {

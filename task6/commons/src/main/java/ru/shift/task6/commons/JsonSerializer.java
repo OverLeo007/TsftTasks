@@ -34,12 +34,13 @@ public final class JsonSerializer {
     @SuppressWarnings("unchecked")
     public static Envelope<? extends Payload> deserialize(String json)
             throws DeserializationException {
+        if (json == null) {
+            return null;
+        }
         try {
             return mapper.readValue(json, Envelope.class);
         } catch (JsonProcessingException e) {
             throw new DeserializationException("Error deserializing the envelope", e);
         }
     }
-
-
 }
