@@ -1,15 +1,14 @@
 package ru.shift.task6.server.services;
 
-import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.payload.UserInfo;
-import ru.shift.task6.server.client.ClientContext;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.alt.commons.protocol.UserInfo;
+import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
+import ru.shift.task6.server.client.ClientContext;
 
 @Slf4j
 public class ClientService {
@@ -34,9 +33,9 @@ public class ClientService {
         clients.remove(user);
     }
 
-    public void sendAll(Envelope<?> envelope) {
-        log.debug("Broadcast {}", envelope);
-        clients.values().forEach(context -> context.getSender().send(envelope));
+    public void sendAll(Notification notification) {
+        log.debug("Broadcast {}", notification);
+        clients.values().forEach(context -> context.getSender().send(notification));
     }
 
     public List<UserInfo> getAllUsers() {

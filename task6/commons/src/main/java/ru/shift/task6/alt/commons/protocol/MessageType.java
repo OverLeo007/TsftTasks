@@ -17,6 +17,7 @@ public enum MessageType {
     USER_LIST_RQ,
     USER_LIST_RS,
     AUTH_RQ,
-    AUTH_RS
+    AUTH_RS,
+    ERROR_RS
 }
 

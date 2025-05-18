@@ -1,14 +1,12 @@
 package ru.shift.task6.server.client;
 
+import java.net.Socket;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.exceptions.DeserializationException;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
+import ru.shift.task6.alt.commons.protocol.ProtocolException;
+import ru.shift.task6.alt.commons.protocol.abstracts.Message;
+import ru.shift.task6.alt.commons.protocol.impl.responses.ErrorResponse;
 import ru.shift.task6.server.handling.RequestHandler;
 import ru.shift.task6.server.services.ClientService;
-
-import java.net.Socket;
 
 @Slf4j
 public class ClientMessageListener implements Runnable {
@@ -28,12 +26,12 @@ public class ClientMessageListener implements Runnable {
 
             var requestHandler = new RequestHandler(context, service);
             try {
-                Envelope<?> envelope;
-                while (!context.isClosed() && (envelope = context.getReader().readEnvelope()) != null) {
-                    requestHandler.dispatch(envelope);
+                Message message;
+                while (!context.isClosed() && (message = context.getReader().readMessage()) != null) {
+                    requestHandler.dispatch(message);
                 }
-            } catch (DeserializationException e) {
-                requestHandler.createAndSendErrorResponse(PayloadType.ERROR, Fault.CLIENT, e);
+            } catch (ProtocolException e) {
+                requestHandler.createAndSendErrorResponse(new ErrorResponse(e.getMessage()));
             }
 
         } catch (Exception e) {

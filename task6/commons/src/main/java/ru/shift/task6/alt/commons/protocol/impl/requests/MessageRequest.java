@@ -5,8 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import ru.shift.task6.alt.commons.protocol.ChatMessage;
 import ru.shift.task6.alt.commons.protocol.MessageType;
+import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
 import ru.shift.task6.alt.commons.protocol.abstracts.Request;
 import ru.shift.task6.alt.commons.protocol.abstracts.Response;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.MessageNotification;
 import ru.shift.task6.alt.commons.protocol.impl.responses.MessageResponse;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -20,6 +22,10 @@ public class MessageRequest extends Request {
 
     public Response success() {
         return new MessageResponse(id);
+    }
+
+    public Notification notification() {
+        return new MessageNotification(message);
     }
 
     @Override

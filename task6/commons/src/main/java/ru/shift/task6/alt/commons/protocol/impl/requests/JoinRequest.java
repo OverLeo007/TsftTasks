@@ -3,8 +3,11 @@ package ru.shift.task6.alt.commons.protocol.impl.requests;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.shift.task6.alt.commons.protocol.MessageType;
+import ru.shift.task6.alt.commons.protocol.UserInfo;
+import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
 import ru.shift.task6.alt.commons.protocol.abstracts.Request;
 import ru.shift.task6.alt.commons.protocol.abstracts.Response;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.JoinNotification;
 import ru.shift.task6.alt.commons.protocol.impl.responses.JoinResponse;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -17,6 +20,10 @@ public class JoinRequest extends Request {
 
     public Response success() {
         return new JoinResponse(id);
+    }
+
+    public Notification notification(UserInfo joinedUser) {
+        return new JoinNotification(joinedUser);
     }
 
     @Override

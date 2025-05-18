@@ -1,23 +1,20 @@
 package ru.shift.task6.server.client;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.channel.ChatChannel;
-import ru.shift.task6.commons.channel.ChatReader;
-import ru.shift.task6.commons.exceptions.SocketConnectionException;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.Payload;
-import ru.shift.task6.commons.models.payload.UserInfo;
-import ru.shift.task6.commons.models.payload.responses.LeaveNotification;
-import ru.shift.task6.server.exceptions.client.ForbiddenException;
-import ru.shift.task6.server.exceptions.client.UnauthorizedException;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.time.Instant;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.alt.commons.channel.ChatChannel;
+import ru.shift.task6.alt.commons.channel.ChatReader;
+import ru.shift.task6.alt.commons.protocol.UserInfo;
+import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.LeaveNotification;
+import ru.shift.task6.commons.exceptions.SocketConnectionException;
+import ru.shift.task6.server.exceptions.client.ForbiddenException;
+import ru.shift.task6.server.exceptions.client.UnauthorizedException;
 
 @Slf4j
 public class ClientContext implements AutoCloseable {
@@ -42,7 +39,7 @@ public class ClientContext implements AutoCloseable {
 
     public ClientContext(
             Socket socket,
-            Consumer<Envelope<? extends Payload>> broadcastConsumer,
+            Consumer<Notification> broadcastConsumer,
             Consumer<UserInfo> onCloseOp
     )
             throws SocketConnectionException {
@@ -70,7 +67,7 @@ public class ClientContext implements AutoCloseable {
         if (authorized) {
             log.debug("Closing clientContext for user: {}", user.getNickname());
             if (joined) {
-                sender.broadcast(PayloadType.LEAVE_NOTIFICATION, new LeaveNotification(user));
+                sender.broadcast(new LeaveNotification(user));
             }
             onCloseOp.accept(user);
 
@@ -96,4 +93,16 @@ public class ClientContext implements AutoCloseable {
         return chatChannel;
     }
 
+    @Override
+    public String toString() {
+        if (user != null) {
+            return "ClientContext{" +
+                    "user=" + user +
+                    ", chatChannel=" + chatChannel +
+                    '}';
+        }
+        return "ClientContext{" +
+                "chatChannel=" + chatChannel +
+                '}';
+    }
 }

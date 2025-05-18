@@ -1,9 +1,8 @@
 package ru.shift.task6.server.handling.senders;
 
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.Payload;
+import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
 
 @FunctionalInterface
 public interface Broadcaster {
-    void broadcast(PayloadType payloadType, Payload payload);
+    void broadcast(Notification notification);
 }

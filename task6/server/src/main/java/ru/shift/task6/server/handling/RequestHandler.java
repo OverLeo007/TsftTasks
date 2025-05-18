@@ -1,12 +1,7 @@
 package ru.shift.task6.server.handling;
 
-import java.time.Instant;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.Header;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.Payload;
-import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
-import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
+import ru.shift.task6.alt.commons.protocol.abstracts.Message;
+import ru.shift.task6.alt.commons.protocol.abstracts.Response;
 import ru.shift.task6.server.client.ClientContext;
 import ru.shift.task6.server.client.MessageSender;
 import ru.shift.task6.server.handling.provider.HandlerContext;
@@ -31,19 +26,15 @@ public class RequestHandler {
         );
     }
 
-    public void dispatch(Envelope<? extends Payload> envelope) {
-        HandlerProvider.handleWithContext(envelope, handlerContext);
+    public void dispatch(Message message) {
+        HandlerProvider.handleWithContext(message, handlerContext);
     }
 
-    private void createAndSendResponse(PayloadType responseType, Payload payload) {
-        Envelope<? extends Payload> responseEnvelope = new Envelope<>(
-                new Header(responseType, Instant.now()),
-                payload
-        );
-        sender.send(responseEnvelope);
+    private void createAndSendResponse(Response response) {
+        sender.send(response);
     }
 
-    public void createAndSendErrorResponse(PayloadType correctResponseType, Fault fault, Throwable cause) {
-        createAndSendResponse(PayloadType.ERROR, new ErrorResponse(correctResponseType, fault, cause.getMessage()));
+    public void createAndSendErrorResponse(Response response) {
+        createAndSendResponse(response);
     }
 }

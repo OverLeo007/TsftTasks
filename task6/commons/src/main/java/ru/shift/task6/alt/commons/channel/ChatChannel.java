@@ -33,7 +33,7 @@ public class ChatChannel implements Closeable, ChatReader, ChatWriter {
     }
 
     @Override
-    public <T extends Message> T readMessage() throws IOException, ProtocolException {
+    public Message readMessage() throws IOException, ProtocolException {
         return JsonSerializer.deserialize(reader.readLine());
     }
 

@@ -1,19 +1,14 @@
 package ru.shift.task6.server;
 
-import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.Header;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.ShutdownNotice;
-import ru.shift.task6.server.config.RunProperties;
-import ru.shift.task6.server.client.ClientMessageListener;
-import ru.shift.task6.server.services.ClientService;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.DisconnectNotification;
+import ru.shift.task6.server.client.ClientMessageListener;
+import ru.shift.task6.server.config.RunProperties;
+import ru.shift.task6.server.services.ClientService;
 
 @Slf4j
 public class Server {
@@ -51,9 +46,7 @@ public class Server {
     }
 
     private void onShutdownBroadcast() {
-        final var header = new Header(PayloadType.SHUTDOWN, Instant.now());
-        final var payload = new ShutdownNotice("Сервер завершил работу");
-        clientService.sendAll(new Envelope<>(header, payload));
+        clientService.sendAll(new DisconnectNotification("Сервер завершил работу"));
     }
 }
 

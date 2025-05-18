@@ -21,6 +21,7 @@ import ru.shift.task6.alt.commons.protocol.impl.requests.JoinRequest;
 import ru.shift.task6.alt.commons.protocol.impl.requests.MessageRequest;
 import ru.shift.task6.alt.commons.protocol.impl.requests.UserListRequest;
 import ru.shift.task6.alt.commons.protocol.impl.responses.AuthResponse;
+import ru.shift.task6.alt.commons.protocol.impl.responses.ErrorResponse;
 import ru.shift.task6.alt.commons.protocol.impl.responses.JoinResponse;
 import ru.shift.task6.alt.commons.protocol.impl.responses.MessageResponse;
 import ru.shift.task6.alt.commons.protocol.impl.responses.UserListResponse;
@@ -60,7 +61,10 @@ public class JsonSerializer {
                 named(MessageNotification.class, MessageType.MESSAGE_NF),
                 named(LeaveNotification.class, MessageType.LEAVE_NF),
 
-                named(DisconnectNotification.class, MessageType.DISCONNECT_NF)
+                named(DisconnectNotification.class, MessageType.DISCONNECT_NF),
+
+                // Error
+                named(ErrorResponse.class, MessageType.ERROR_RS)
         );
     }
 
@@ -76,14 +80,14 @@ public class JsonSerializer {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T extends Message> T deserialize(String data) throws ProtocolException {
+    public static Message deserialize(String data) throws ProtocolException {
+        if (data == null) {
+            return null;
+        }
         try {
-            return (T) mapper.readValue(data, AbstractMessageImpl.class);
+            return mapper.readValue(data, AbstractMessageImpl.class);
         } catch (JsonProcessingException e) {
             throw new ProtocolException("Deserialization failed on: " + data, e);
         }
     }
-
-
 }
