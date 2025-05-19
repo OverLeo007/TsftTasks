@@ -1,15 +1,15 @@
 package ru.shift.task6.server.handling.provider;
 
-import static ru.shift.task6.alt.commons.protocol.MessageType.DISCONNECT_NF;
+import static ru.shift.task6.commons.protocol.MessageType.DISCONNECT_NF;
 
 import java.util.EnumMap;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.protocol.MessageType;
-import ru.shift.task6.alt.commons.protocol.abstracts.Message;
-import ru.shift.task6.alt.commons.protocol.abstracts.Request;
+import ru.shift.task6.commons.protocol.MessageType;
+import ru.shift.task6.commons.protocol.abstracts.Message;
+import ru.shift.task6.commons.protocol.abstracts.Request;
 import ru.shift.task6.server.handling.handlers.AuthRequestHandler;
 import ru.shift.task6.server.handling.handlers.DisconnectNotificationHandler;
 import ru.shift.task6.server.handling.handlers.Handler;

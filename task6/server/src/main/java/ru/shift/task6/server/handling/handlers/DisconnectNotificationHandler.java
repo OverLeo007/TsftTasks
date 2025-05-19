@@ -2,7 +2,7 @@ package ru.shift.task6.server.handling.handlers;
 
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.protocol.impl.notifications.DisconnectNotification;
+import ru.shift.task6.commons.protocol.impl.notifications.DisconnectNotification;
 import ru.shift.task6.server.handling.provider.HandlerContext;
 
 @Slf4j

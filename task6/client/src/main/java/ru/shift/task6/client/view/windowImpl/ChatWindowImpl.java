@@ -13,8 +13,8 @@ import javax.swing.Timer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.protocol.ChatMessage;
-import ru.shift.task6.alt.commons.protocol.UserInfo;
+import ru.shift.task6.commons.protocol.ChatMessage;
+import ru.shift.task6.commons.protocol.UserInfo;
 import ru.shift.task6.client.view.designer.ChatWindow;
 
 @Slf4j

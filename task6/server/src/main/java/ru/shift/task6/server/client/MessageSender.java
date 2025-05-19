@@ -4,11 +4,11 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.channel.ChatWriter;
-import ru.shift.task6.alt.commons.protocol.ProtocolException;
-import ru.shift.task6.alt.commons.protocol.abstracts.Message;
-import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
-import ru.shift.task6.alt.commons.protocol.impl.responses.ErrorResponse;
+import ru.shift.task6.commons.channel.ChatWriter;
+import ru.shift.task6.commons.exceptions.ProtocolException;
+import ru.shift.task6.commons.protocol.abstracts.Message;
+import ru.shift.task6.commons.protocol.abstracts.Notification;
+import ru.shift.task6.commons.protocol.impl.responses.ErrorResponse;
 
 @Slf4j
 public class MessageSender {

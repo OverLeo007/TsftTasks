@@ -29,7 +29,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import com.formdev.flatlaf.extras.*;
-import ru.shift.task6.alt.commons.protocol.UserInfo;
+import ru.shift.task6.commons.protocol.UserInfo;
 import ru.shift.task6.client.view.misc.Icons;
 import ru.shift.task6.client.view.misc.UserCellRenderer;
 

@@ -1,10 +1,9 @@
 package ru.shift.task6.commons.channel;
 
 import java.io.IOException;
-import ru.shift.task6.commons.exceptions.DeserializationException;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.payload.Payload;
+import ru.shift.task6.commons.exceptions.ProtocolException;
+import ru.shift.task6.commons.protocol.abstracts.Message;
 
 public interface ChatReader {
-    Envelope<? extends Payload> readEnvelope() throws IOException, DeserializationException;
+    Message readMessage() throws IOException, ProtocolException;
 }

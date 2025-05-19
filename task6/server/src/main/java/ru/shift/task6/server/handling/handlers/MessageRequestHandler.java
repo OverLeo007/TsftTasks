@@ -1,6 +1,6 @@
 package ru.shift.task6.server.handling.handlers;
 
-import ru.shift.task6.alt.commons.protocol.impl.requests.MessageRequest;
+import ru.shift.task6.commons.protocol.impl.requests.MessageRequest;
 import ru.shift.task6.server.exceptions.client.ForbiddenException;
 import ru.shift.task6.server.handling.provider.HandlerContext;
 

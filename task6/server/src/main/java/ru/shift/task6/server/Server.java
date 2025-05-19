@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.protocol.impl.notifications.DisconnectNotification;
+import ru.shift.task6.commons.protocol.impl.notifications.DisconnectNotification;
 import ru.shift.task6.server.client.ClientMessageListener;
 import ru.shift.task6.server.config.RunProperties;
 import ru.shift.task6.server.services.ClientService;

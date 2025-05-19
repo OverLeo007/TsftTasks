@@ -1,6 +1,6 @@
 package ru.shift.task6.client.socket.response.handlers;
 
-import ru.shift.task6.alt.commons.protocol.abstracts.Response;
+import ru.shift.task6.commons.protocol.abstracts.Response;
 
 public interface ResponseHandler<T> {
 

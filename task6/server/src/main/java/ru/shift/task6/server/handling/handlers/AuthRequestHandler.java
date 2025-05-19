@@ -1,8 +1,8 @@
 package ru.shift.task6.server.handling.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.protocol.UserInfo;
-import ru.shift.task6.alt.commons.protocol.impl.requests.AuthRequest;
+import ru.shift.task6.commons.protocol.UserInfo;
+import ru.shift.task6.commons.protocol.impl.requests.AuthRequest;
 import ru.shift.task6.server.exceptions.client.UserRegistrationException;
 import ru.shift.task6.server.handling.provider.HandlerContext;
 

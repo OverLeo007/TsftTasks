@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.protocol.UserInfo;
-import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
+import ru.shift.task6.commons.protocol.UserInfo;
+import ru.shift.task6.commons.protocol.abstracts.Notification;
 import ru.shift.task6.server.client.ClientContext;
 
 @Slf4j

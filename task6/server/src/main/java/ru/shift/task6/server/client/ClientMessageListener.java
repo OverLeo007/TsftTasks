@@ -2,9 +2,9 @@ package ru.shift.task6.server.client;
 
 import java.net.Socket;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.alt.commons.protocol.ProtocolException;
-import ru.shift.task6.alt.commons.protocol.abstracts.Message;
-import ru.shift.task6.alt.commons.protocol.impl.responses.ErrorResponse;
+import ru.shift.task6.commons.exceptions.ProtocolException;
+import ru.shift.task6.commons.protocol.abstracts.Message;
+import ru.shift.task6.commons.protocol.impl.responses.ErrorResponse;
 import ru.shift.task6.server.handling.RequestHandler;
 import ru.shift.task6.server.services.ClientService;
 

@@ -8,13 +8,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import lombok.extern.slf4j.Slf4j;
 import ru.shift.task6.commons.JsonSerializer;
-import ru.shift.task6.commons.exceptions.DeserializationException;
-import ru.shift.task6.commons.exceptions.SerializationException;
-import ru.shift.task6.commons.exceptions.SocketConnectionException;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.payload.Payload;
+import ru.shift.task6.commons.exceptions.ProtocolException;
+import ru.shift.task6.commons.protocol.abstracts.Message;
 
+@Slf4j
 public class ChatChannel implements Closeable, ChatReader, ChatWriter {
 
     private final Socket socket;
@@ -35,13 +34,17 @@ public class ChatChannel implements Closeable, ChatReader, ChatWriter {
     }
 
     @Override
-    public Envelope<? extends Payload> readEnvelope() throws IOException, DeserializationException {
-        return JsonSerializer.deserialize(reader.readLine());
+    public Message readMessage() throws IOException, ProtocolException {
+        var line = reader.readLine();
+        log.trace("Reading message: {}", line);
+        return JsonSerializer.deserialize(line);
     }
 
     @Override
-    public void sendEnvelope(Envelope<?> envelope) throws SerializationException {
-        writer.println(JsonSerializer.serialize(envelope));
+    public void sendMessage(Message message) throws ProtocolException {
+        var line = JsonSerializer.serialize(message);
+        log.trace("Sending message: {}", line);
+        writer.println(line);
     }
 
     @Override

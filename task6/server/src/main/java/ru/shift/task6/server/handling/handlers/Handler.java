@@ -1,6 +1,6 @@
 package ru.shift.task6.server.handling.handlers;
 
-import ru.shift.task6.alt.commons.protocol.abstracts.Message;
+import ru.shift.task6.commons.protocol.abstracts.Message;
 import ru.shift.task6.server.handling.provider.HandlerContext;
 
 @FunctionalInterface

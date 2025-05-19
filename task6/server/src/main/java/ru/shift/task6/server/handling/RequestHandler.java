@@ -1,7 +1,7 @@
 package ru.shift.task6.server.handling;
 
-import ru.shift.task6.alt.commons.protocol.abstracts.Message;
-import ru.shift.task6.alt.commons.protocol.abstracts.Response;
+import ru.shift.task6.commons.protocol.abstracts.Message;
+import ru.shift.task6.commons.protocol.abstracts.Response;
 import ru.shift.task6.server.client.ClientContext;
 import ru.shift.task6.server.client.MessageSender;
 import ru.shift.task6.server.handling.provider.HandlerContext;
