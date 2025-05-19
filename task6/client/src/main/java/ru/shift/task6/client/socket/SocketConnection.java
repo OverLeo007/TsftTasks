@@ -18,6 +18,7 @@ import ru.shift.task6.alt.commons.protocol.MessageType;
 import ru.shift.task6.alt.commons.protocol.ProtocolException;
 import ru.shift.task6.alt.commons.protocol.abstracts.Message;
 import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
+import ru.shift.task6.alt.commons.protocol.abstracts.Request;
 import ru.shift.task6.alt.commons.protocol.abstracts.Response;
 import ru.shift.task6.alt.commons.protocol.impl.notifications.DisconnectNotification;
 import ru.shift.task6.client.exceptions.ResponseException;
@@ -140,14 +141,14 @@ public class SocketConnection implements Closeable {
     }
 
     public CompletableFuture<Response> sendAwaitResponse(
-            Message message,
+            Request request,
             MessageType responseType
     ) {
         CompletableFuture<Response> future = new CompletableFuture<>();
         pendingResponses.put(responseType, future);
 
         try {
-            send(message);
+            send(request);
         } catch (SocketConnectionException e) {
             pendingResponses.remove(responseType);
             future.completeExceptionally(new ResponseException(e.getMessage()));
@@ -157,7 +158,7 @@ public class SocketConnection implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Notification> void addPermanentMessageListener(MessageType messageType,
+    public <T extends Notification> void addNotificationListener(MessageType messageType,
             Consumer<T> onMessage) {
         notificationListeners.computeIfAbsent(messageType, __ -> new CopyOnWriteArrayList<>())
                 .add((Consumer<Notification>) onMessage);

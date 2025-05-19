@@ -102,7 +102,7 @@ public class SocketClient implements Closeable {
     }
 
     public <T extends Notification> void addListener(MessageType messageType, Consumer<T> onMessage) {
-        connection.addPermanentMessageListener(messageType, onMessage);
+        connection.addNotificationListener(messageType, onMessage);
     }
 
 
