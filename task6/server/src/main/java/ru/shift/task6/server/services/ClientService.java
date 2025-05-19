@@ -15,13 +15,14 @@ public class ClientService {
 
     private final Map<UserInfo, ClientContext> clients = new ConcurrentHashMap<>();
 
-    public UserInfo addClient(UserInfo user, ClientContext context) {
+    public synchronized UserInfo addClient(UserInfo user, ClientContext context) {
         log.debug("Adding new user: {}", user.getNickname());
         final var userToAdd = new UserInfo(user.getNickname(), Instant.now());
-        ClientContext existing = clients.putIfAbsent(userToAdd, context);
-        if (existing != null) {
+        if (clients.containsKey(userToAdd)) {
+            log.debug("Попытка использовать занятое имя пользователя");
             throw new IllegalStateException("User already connected: " + user.getNickname());
         }
+        clients.put(userToAdd, context);
         return userToAdd;
     }
 

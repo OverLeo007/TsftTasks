@@ -1,17 +1,29 @@
 package ru.shift.task6.server.config;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 import ru.shift.task6.server.exceptions.ConfigurationLoadException;
 import ru.shift.task6.server.exceptions.PropertiesArgumentException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 @Slf4j
 public class Config {
+
+    @Getter
+    private enum FileType {
+        INTERNAL("Встроенный"),
+        EXTERNAL("Внешний");
+
+        private final String fileTypeName;
+
+        FileType(String fileTypeName) {
+            this.fileTypeName = fileTypeName;
+        }
+    }
 
     public static final String FILENAME = "properties.yaml";
     private static final Path EXTERNAL_CONFIG_PATH = Path.of(FILENAME);
@@ -20,17 +32,8 @@ public class Config {
 
         try {
             ensureExternalConfigExists();
-            try (InputStream externalStream = Files.newInputStream(EXTERNAL_CONFIG_PATH)) {
-                log.info("Загружаем конфигурацию из внешнего файла: {}",
-                        EXTERNAL_CONFIG_PATH.toAbsolutePath());
-                Yaml yaml = new Yaml();
-                RunProperties loadedProperties = yaml.loadAs(externalStream, RunProperties.class);
-                if (loadedProperties == null) {
-                    throw new ConfigurationLoadException(
-                            "Файл конфигурации пустой: " + EXTERNAL_CONFIG_PATH);
-                }
-                validateProperties(loadedProperties);
-                return loadedProperties;
+            try (InputStream inputStream = Files.newInputStream(EXTERNAL_CONFIG_PATH)) {
+                return loadConfigFromStream(inputStream, FileType.EXTERNAL);
             }
         } catch (Exception e) {
             log.warn("""
@@ -40,21 +43,27 @@ public class Config {
 
             try (InputStream internalStream = Config.class.getClassLoader()
                     .getResourceAsStream(FILENAME)) {
-                if (internalStream == null) {
-                    throw new ConfigurationLoadException("Встроенный файл конфигурации не найден.");
-                }
-                Yaml yaml = new Yaml();
-                RunProperties fallbackProperties = yaml.loadAs(internalStream, RunProperties.class);
-                if (fallbackProperties == null) {
-                    throw new ConfigurationLoadException("Встроенный файл конфигурации пустой.");
-                }
-                validateProperties(fallbackProperties);
-                return fallbackProperties;
+                return loadConfigFromStream(internalStream, FileType.INTERNAL);
             } catch (IOException ex) {
                 throw new ConfigurationLoadException("Ошибка при загрузке встроенной конфигурации",
                         ex);
             }
         }
+    }
+
+    private static RunProperties loadConfigFromStream(InputStream inputStream, FileType fileType) {
+        if (inputStream == null) {
+            throw new ConfigurationLoadException(
+                    fileType.getFileTypeName() + "файл конфигурации не найден.");
+        }
+        Yaml yaml = new Yaml();
+        RunProperties loadedProperties = yaml.loadAs(inputStream, RunProperties.class);
+        if (loadedProperties == null) {
+            throw new ConfigurationLoadException(
+                    fileType.getFileTypeName() + " файл конфигурации пустой.");
+        }
+        validateProperties(loadedProperties);
+        return loadedProperties;
     }
 
     private static void ensureExternalConfigExists() throws IOException {
@@ -79,5 +88,7 @@ public class Config {
                     ". Порт должен быть в диапазоне от 1025 до 65535");
         }
     }
+
+
 }
 

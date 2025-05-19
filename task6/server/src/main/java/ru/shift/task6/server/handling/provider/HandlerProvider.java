@@ -46,7 +46,8 @@ public class HandlerProvider {
 
         } catch (Exception e) {
             if (message.isRequest()) {
-                ((Request) message).error(e.getMessage());
+                context.errorResponseSender()
+                        .sendErrorResponse(((Request) message).error(e.getMessage()));
             }
         }
     }
