@@ -1,9 +1,11 @@
 package ru.shift.task6.client.presenter;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.responses.JoinNotification;
-import ru.shift.task6.commons.models.payload.responses.LeaveNotification;
+import ru.shift.task6.alt.commons.protocol.MessageType;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.DisconnectNotification;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.JoinNotification;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.LeaveNotification;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.MessageNotification;
 import ru.shift.task6.client.socket.SocketClient;
 import ru.shift.task6.client.view.windowImpl.ChatWindowImpl;
 import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;
@@ -18,12 +20,17 @@ public class ChatPresenter {
         this.window = window;
         this.client = client;
 
-        client.addListener(PayloadType.MESSAGE, window::appendMessage);
-        client.<JoinNotification>addListener(PayloadType.JOIN_NOTIFICATION,
-                rsp -> window.onJoin(rsp.getUser()));
-        client.<LeaveNotification>addListener(PayloadType.LEAVE_NOTIFICATION,
-                rsp -> window.onLeave(rsp.getUser()));
-        client.addListener(PayloadType.SHUTDOWN, window::onDisconnect);
+        client.<MessageNotification>addListener(MessageType.MESSAGE_NF,
+                nf -> window.appendMessage(nf.getMessage()));
+
+        client.<JoinNotification>addListener(MessageType.JOIN_NF,
+                nf -> window.onJoin(nf.getUser()));
+
+        client.<LeaveNotification>addListener(MessageType.LEAVE_NF,
+                nf -> window.onLeave(nf.getUser()));
+
+        client.<DisconnectNotification>addListener(MessageType.DISCONNECT_NF,
+                nf -> window.onDisconnect(nf.getReason()));
     }
 
     public void joinChat() {
@@ -33,18 +40,18 @@ public class ChatPresenter {
                     getActiveUsers();
                 },
                 error -> {
-                    new ErrorWindowImpl(window, error.getMessage(), true);
-                    log.error("Error while joining chat: {}", error.getMessage());
+                    new ErrorWindowImpl(window, error, true);
+                    log.error("Error while joining chat: {}", error);
                 }
         );
     }
 
     private void getActiveUsers() {
         client.sendUserListRequest(
-                response -> window.updateSidebar(response.getUsers()),
+                response -> window.updateSidebar(response.getUsersOnline()),
                 error -> {
-                    new ErrorWindowImpl(window, error.getMessage(), false);
-                    log.error("Error while getting user list: {}", error.getMessage());
+                    new ErrorWindowImpl(window, error, false);
+                    log.error("Error while getting user list: {}", error);
                 }
         );
     }

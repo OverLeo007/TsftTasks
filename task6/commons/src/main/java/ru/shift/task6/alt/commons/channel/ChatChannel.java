@@ -8,11 +8,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import lombok.extern.slf4j.Slf4j;
 import ru.shift.task6.alt.commons.JsonSerializer;
 import ru.shift.task6.alt.commons.protocol.ProtocolException;
 import ru.shift.task6.alt.commons.protocol.abstracts.Message;
 
-
+@Slf4j
 public class ChatChannel implements Closeable, ChatReader, ChatWriter {
 
     private final Socket socket;
@@ -34,12 +35,16 @@ public class ChatChannel implements Closeable, ChatReader, ChatWriter {
 
     @Override
     public Message readMessage() throws IOException, ProtocolException {
-        return JsonSerializer.deserialize(reader.readLine());
+        var line = reader.readLine();
+        log.trace("Reading message: {}", line);
+        return JsonSerializer.deserialize(line);
     }
 
     @Override
     public void sendMessage(Message message) throws ProtocolException {
-        writer.println(JsonSerializer.serialize(message));
+        var line = JsonSerializer.serialize(message);
+        log.trace("Sending message: {}", line);
+        writer.println(line);
     }
 
     @Override

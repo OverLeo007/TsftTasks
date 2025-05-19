@@ -3,9 +3,9 @@ package ru.shift.task6.client.socket;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -13,31 +13,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.alt.commons.channel.ChatChannel;
+import ru.shift.task6.alt.commons.protocol.MessageType;
+import ru.shift.task6.alt.commons.protocol.ProtocolException;
+import ru.shift.task6.alt.commons.protocol.abstracts.Message;
+import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
+import ru.shift.task6.alt.commons.protocol.abstracts.Response;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.DisconnectNotification;
 import ru.shift.task6.client.exceptions.ResponseException;
 import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;
-import ru.shift.task6.commons.channel.ChatChannel;
-import ru.shift.task6.commons.exceptions.DeserializationException;
-import ru.shift.task6.commons.exceptions.SerializationException;
 import ru.shift.task6.commons.exceptions.SocketConnectionException;
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.Header;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.Payload;
-import ru.shift.task6.commons.models.payload.ShutdownNotice;
-import ru.shift.task6.commons.models.payload.responses.ErrorResponse;
-import ru.shift.task6.commons.models.payload.responses.ErrorResponse.Fault;
 
 @Slf4j
 public class SocketConnection implements Closeable {
 
-    private final Map<PayloadType, CompletableFuture<Envelope<?>>> pendingResponses = new ConcurrentHashMap<>();
-    private final Map<PayloadType, List<Consumer<Envelope<?>>>> permanentListeners = new ConcurrentHashMap<>();
+    private final Map<MessageType, CompletableFuture<Response>> pendingResponses = new ConcurrentHashMap<>();
+    private final Map<MessageType, List<Consumer<Notification>>> notificationListeners = new ConcurrentHashMap<>();
 
-    private final ExecutorService listenerPool = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "MessageListener");
-        t.setDaemon(true);
-        return t;
-    });
+    private final ExecutorService listenerPool = Executors.newSingleThreadExecutor(r -> new Thread(r, "MessageListener"));
 
     private final ChatChannel chatChannel;
 
@@ -48,114 +41,126 @@ public class SocketConnection implements Closeable {
 
     private void listen() {
         try {
-            Envelope<?> envelope;
-            while ((envelope = chatChannel.readEnvelope()) != null) {
-                log.trace("Catch incoming message: {}", envelope);
-                if (envelope.getHeader().getPayloadType() == PayloadType.ERROR) {
-                    handleErrorResponse(envelope);
-                    continue;
-                }
-                handleSuccessResponse(envelope);
+            Message message;
+            while ((message = chatChannel.readMessage()) != null) {
+                log.trace("Catch incoming message: {}", message);
+                Optional.of(message)
+                        .flatMap(this::handleSuccessResponse)
+                        .flatMap(this::handleErrorResponse)
+                        .flatMap(this::handleNotification)
+                        .ifPresent(msg ->
+                                new ErrorWindowImpl(
+                                        "Unknown message catch",
+                                        false
+                                ).setEnabled(true)
+                        );
             }
-        } catch (DeserializationException e) {
+        } catch (ProtocolException e) {
+            log.error("Deserialization incoming message error", e);
             throw new SocketConnectionException("Deserialization incoming message error", e);
         } catch (IOException e) {
             handleDisconnectionWhileListen();
         }
     }
 
-    private void handleSuccessResponse(Envelope<?> envelope) {
-        PayloadType type = envelope.getHeader().getPayloadType();
-        CompletableFuture<Envelope<?>> future = pendingResponses.remove(type);
+    private Optional<Message> handleSuccessResponse(Message message) {
+        if (!message.isResponse()) {
+            return Optional.of(message);
+        }
+        var response = (Response) message;
+        if (response.isError()) {
+            return Optional.of(message);
+        }
+        CompletableFuture<Response> future = pendingResponses.remove(message.getType());
         if (future != null) {
-            future.complete(envelope);
-        }
 
-        var permanent = permanentListeners.get(type);
-        if (permanent != null) {
-            permanent.forEach(l -> l.accept(envelope));
+            future.complete(response);
+            return Optional.empty();
         }
+        return Optional.of(message);
     }
 
-    private void handleErrorResponse(Envelope<?> envelope) {
-        var typedPayload = (ErrorResponse) envelope.getPayload();
-        var originalType = typedPayload.getCorrectResponseType();
-
-        var errorFuture = pendingResponses.remove(originalType);
+    private Optional<Message> handleErrorResponse(Message message) {
+        if (!message.isResponse()) {
+            return Optional.of(message);
+        }
+        var response = (Response) message;
+        var errorFuture = pendingResponses.remove(message.getType());
         if (errorFuture != null) {
-            errorFuture.completeExceptionally(new ResponseException(typedPayload));
-        } else if (originalType == PayloadType.ERROR) {
+            errorFuture.completeExceptionally(new ResponseException(response.getErrorMessage()));
+            return Optional.empty();
+        }
+        if (response.getType() == MessageType.ERROR_RS) {
             new ErrorWindowImpl(
-                    typedPayload.getMessage(),
+                    response.getErrorMessage(),
                     false
             ).setEnabled(true);
+            return Optional.empty();
         }
+        return Optional.of(message);
+    }
+
+    private Optional<Message> handleNotification(Message message) {
+        if (message.isRequest() || message.isResponse()) {
+            return Optional.of(message);
+        }
+        var notification = (Notification) message;
+        var listener = notificationListeners.get(notification.getType());
+        if (listener != null) {
+            listener.forEach(l -> l.accept(notification));
+            return Optional.empty();
+        }
+        return Optional.of(message);
     }
 
     private void handleDisconnectionWhileListen() {
-        var disconnectionEnvelope = new Envelope<>(
-                new Header(PayloadType.SHUTDOWN, null),
-                new ShutdownNotice("Server disconnected")
-        );
+        var disconnectionMessage = new DisconnectNotification("Server closed");
 
-        CompletableFuture<Envelope<?>> shutdown = pendingResponses.remove(PayloadType.SHUTDOWN);
-        if (shutdown != null) {
-            shutdown.complete(disconnectionEnvelope);
-        }
-        var permanent = permanentListeners.get(PayloadType.SHUTDOWN);
-        if (permanent != null) {
-            permanent.forEach(listener -> listener.accept(disconnectionEnvelope));
+        var disconnectionListeners = notificationListeners.remove(MessageType.DISCONNECT_NF);
+        if (disconnectionListeners != null) {
+            disconnectionListeners.forEach(lst -> lst.accept(disconnectionMessage));
         }
     }
 
 
-    public void send(PayloadType type, Payload payload) {
-        var envelope = new Envelope<>(
-                new Header(type, Instant.now()),
-                payload
-        );
+    public void send(Message message) {
         try {
             if (chatChannel.isClosed()) {
                 log.warn("Socket is closed, cannot send message");
                 return;
             }
-            chatChannel.sendEnvelope(envelope);
+            chatChannel.sendMessage(message);
             if (chatChannel.checkWriterError()) {
                 throw new SocketConnectionException("Error while sending message");
             }
-        } catch (SerializationException e) {
+        } catch (ProtocolException e) {
             throw new SocketConnectionException("Error while sending message", e);
         }
 
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends Payload> CompletableFuture<Envelope<T>> sendAwaitResponse(
-            PayloadType requestType, Payload payload,
-            PayloadType responseType
+    public CompletableFuture<Response> sendAwaitResponse(
+            Message message,
+            MessageType responseType
     ) {
-        CompletableFuture<Envelope<?>> future = new CompletableFuture<>();
+        CompletableFuture<Response> future = new CompletableFuture<>();
         pendingResponses.put(responseType, future);
 
         try {
-            send(requestType, payload);
+            send(message);
         } catch (SocketConnectionException e) {
             pendingResponses.remove(responseType);
-            future.completeExceptionally(
-                    new ResponseException(
-                            new ErrorResponse(responseType, Fault.CLIENT, e.getMessage())
-                    )
-            );
+            future.completeExceptionally(new ResponseException(e.getMessage()));
         }
 
-        return (CompletableFuture<Envelope<T>>) (CompletableFuture<?>) future;
+        return future;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Payload> void addPermanentMessageListener(PayloadType messageType,
-            Consumer<Envelope<T>> onMessage) {
-        permanentListeners.computeIfAbsent(messageType, __ -> new CopyOnWriteArrayList<>())
-                .add(env -> onMessage.accept((Envelope<T>) env));
+    public <T extends Notification> void addPermanentMessageListener(MessageType messageType,
+            Consumer<T> onMessage) {
+        notificationListeners.computeIfAbsent(messageType, __ -> new CopyOnWriteArrayList<>())
+                .add((Consumer<Notification>) onMessage);
 
     }
 

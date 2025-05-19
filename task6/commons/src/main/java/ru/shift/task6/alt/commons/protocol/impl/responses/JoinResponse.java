@@ -1,9 +1,11 @@
 package ru.shift.task6.alt.commons.protocol.impl.responses;
 
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import ru.shift.task6.alt.commons.protocol.MessageType;
 import ru.shift.task6.alt.commons.protocol.abstracts.Response;
 
+@NoArgsConstructor
 public class JoinResponse extends Response {
 
     public JoinResponse(@NonNull String id) {

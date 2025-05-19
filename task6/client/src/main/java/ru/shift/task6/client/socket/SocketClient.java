@@ -9,20 +9,23 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.shift.task6.alt.commons.protocol.ChatMessage;
+import ru.shift.task6.alt.commons.protocol.MessageType;
+import ru.shift.task6.alt.commons.protocol.UserInfo;
+import ru.shift.task6.alt.commons.protocol.abstracts.Notification;
+import ru.shift.task6.alt.commons.protocol.impl.notifications.DisconnectNotification;
+import ru.shift.task6.alt.commons.protocol.impl.requests.AuthRequest;
+import ru.shift.task6.alt.commons.protocol.impl.requests.JoinRequest;
+import ru.shift.task6.alt.commons.protocol.impl.requests.MessageRequest;
+import ru.shift.task6.alt.commons.protocol.impl.requests.UserListRequest;
+import ru.shift.task6.alt.commons.protocol.impl.responses.AuthResponse;
+import ru.shift.task6.alt.commons.protocol.impl.responses.JoinResponse;
+import ru.shift.task6.alt.commons.protocol.impl.responses.UserListResponse;
 import ru.shift.task6.client.socket.response.handlers.ErrorResponseHandler;
 import ru.shift.task6.client.socket.response.handlers.ResponseHandler;
+import ru.shift.task6.client.view.windowImpl.ErrorWindowImpl;
 import ru.shift.task6.commons.exceptions.SocketConnectionException;
-import ru.shift.task6.commons.models.PayloadType;
-import ru.shift.task6.commons.models.payload.ChatMessage;
-import ru.shift.task6.commons.models.payload.Payload;
-import ru.shift.task6.commons.models.payload.ShutdownNotice;
-import ru.shift.task6.commons.models.payload.UserInfo;
-import ru.shift.task6.commons.models.payload.requests.AuthRequest;
-import ru.shift.task6.commons.models.payload.requests.JoinRequest;
-import ru.shift.task6.commons.models.payload.requests.UserListRequest;
-import ru.shift.task6.commons.models.payload.responses.JoinResponse;
-import ru.shift.task6.commons.models.payload.responses.SuccessAuthResponse;
-import ru.shift.task6.commons.models.payload.responses.UserListResponse;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,20 +43,19 @@ public class SocketClient implements Closeable {
 
     public void sendAuthRequest(
             String nickname,
-            ResponseHandler<SuccessAuthResponse> onSuccess,
+            ResponseHandler<AuthResponse> onSuccess,
             ErrorResponseHandler onError
     ) {
         log.debug("Sending auth request");
         var request = new AuthRequest(new UserInfo(nickname, null));
         connection.sendAwaitResponse(
-                        PayloadType.AUTH,
                         request,
-                        PayloadType.SUCCESS
+                        MessageType.AUTH_RS
                 )
-                .thenAccept(env -> {
-                    var payload = (SuccessAuthResponse) env.getPayload();
-                    onSuccess.handle(payload);
-                    user = payload.getAuthUser();
+                .thenAccept(resp -> {
+                    var authResp = (AuthResponse) resp;
+                    onSuccess.handle(authResp);
+                    user = authResp.getUser();
                 })
                 .exceptionally(onError::handle);
     }
@@ -64,9 +66,8 @@ public class SocketClient implements Closeable {
     ) {
         log.debug("Sending join request");
         connection.sendAwaitResponse(
-                        PayloadType.JOIN_RQ,
                         new JoinRequest(),
-                        PayloadType.JOIN_RS
+                        MessageType.JOIN_RS
                 )
                 .thenAccept(onSuccess::handle)
                 .exceptionally(onError::handle);
@@ -78,32 +79,37 @@ public class SocketClient implements Closeable {
     ) {
         log.debug("Sending user list request");
         connection.sendAwaitResponse(
-                        PayloadType.USER_LIST_RQ,
                         new UserListRequest(),
-                        PayloadType.USER_LIST_RS
+                        MessageType.USER_LIST_RS
                 )
                 .thenAccept(onSuccess::handle)
                 .exceptionally(onError::handle);
     }
 
-    public void sendMessage(String message) {
+    public void sendMessage(
+            String message
+    ) {
         log.debug("Sending message");
-        connection.send(PayloadType.MESSAGE,
-                new ChatMessage(user, message, Instant.now()));
+        connection.sendAwaitResponse(
+                new MessageRequest(new ChatMessage(user, Instant.now(), message)),
+                MessageType.MESSAGE_RS
+        )
+                .thenAccept(rsp -> {})
+                .exceptionally(ex -> {
+                    new ErrorWindowImpl(ex.getMessage(), false);
+                    return null;
+                });
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends Payload> void addListener(PayloadType messageType, Consumer<T> onMessage) {
-
-        connection.addPermanentMessageListener(messageType,
-                envelope -> onMessage.accept((T) envelope.getPayload()));
+    public <T extends Notification> void addListener(MessageType messageType, Consumer<T> onMessage) {
+        connection.addPermanentMessageListener(messageType, onMessage);
     }
 
 
     public void sendDisconnection(String reason) {
         log.debug("Sending disconnection");
         try {
-            connection.send(PayloadType.SHUTDOWN, new ShutdownNotice(reason));
+            connection.send(new DisconnectNotification(reason));
         } catch (SocketConnectionException e) {
             log.warn("Ошибка при отключении: ", e);
         }

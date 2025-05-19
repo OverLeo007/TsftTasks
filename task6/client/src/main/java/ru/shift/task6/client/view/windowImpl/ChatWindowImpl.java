@@ -13,9 +13,8 @@ import javax.swing.Timer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.models.payload.ChatMessage;
-import ru.shift.task6.commons.models.payload.ShutdownNotice;
-import ru.shift.task6.commons.models.payload.UserInfo;
+import ru.shift.task6.alt.commons.protocol.ChatMessage;
+import ru.shift.task6.alt.commons.protocol.UserInfo;
 import ru.shift.task6.client.view.designer.ChatWindow;
 
 @Slf4j
@@ -51,10 +50,10 @@ public class ChatWindowImpl extends ChatWindow {
     public void appendMessage(ChatMessage message) {
         StyledDocument doc = chatArea.getStyledDocument();
         try {
-            String formattedTime = formatTime(message.getTime());
+            String formattedTime = formatTime(message.getSendTime());
             String header = "<" + message.getSender().getNickname() + ":" + formattedTime + "> ";
             doc.insertString(doc.getLength(), header, doc.getStyle("time"));
-            doc.insertString(doc.getLength(), "- " + message.getText() + "\n",
+            doc.insertString(doc.getLength(), "- " + message.getBody() + "\n",
                     doc.getStyle("regular"));
         } catch (BadLocationException e) {
             log.error("Error inserting message into chat area", e);
@@ -104,10 +103,10 @@ public class ChatWindowImpl extends ChatWindow {
         timer.start();
     }
 
-    public void onDisconnect(ShutdownNotice notice) {
+    public void onDisconnect(String reason) {
 
-            log.debug("setting up shutdown notice {}", notice);
-            chatErrorLabel.setText(notice.getReason());
+            log.debug("setting up shutdown notice {}", reason);
+            chatErrorLabel.setText(reason);
             chatErrorLabel.setVisible(true);
             messageField.setEnabled(false);
             sendButton.setEnabled(false);

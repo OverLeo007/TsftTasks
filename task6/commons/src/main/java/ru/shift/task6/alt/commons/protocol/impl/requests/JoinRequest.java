@@ -1,6 +1,5 @@
 package ru.shift.task6.alt.commons.protocol.impl.requests;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.shift.task6.alt.commons.protocol.MessageType;
 import ru.shift.task6.alt.commons.protocol.UserInfo;
@@ -10,7 +9,7 @@ import ru.shift.task6.alt.commons.protocol.abstracts.Response;
 import ru.shift.task6.alt.commons.protocol.impl.notifications.JoinNotification;
 import ru.shift.task6.alt.commons.protocol.impl.responses.JoinResponse;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class JoinRequest extends Request {
 
     @Override

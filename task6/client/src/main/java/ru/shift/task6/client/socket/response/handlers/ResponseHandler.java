@@ -1,15 +1,13 @@
 package ru.shift.task6.client.socket.response.handlers;
 
-import ru.shift.task6.commons.models.Envelope;
-import ru.shift.task6.commons.models.payload.Payload;
+import ru.shift.task6.alt.commons.protocol.abstracts.Response;
 
-public interface ResponseHandler<T extends Payload> {
+public interface ResponseHandler<T> {
+
+    void handle(T response);
 
     @SuppressWarnings("unchecked")
-    default void handle(Envelope<?> envelope) {
-        handle(((Envelope<T>) envelope).getPayload());
+    default void handle(Response response) {
+        handle((T) response);
     }
-
-    void handle(T payload);
-
 }

@@ -10,7 +10,8 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import lombok.extern.slf4j.Slf4j;
-import ru.shift.task6.commons.models.payload.UserInfo;
+import ru.shift.task6.alt.commons.protocol.UserInfo;
+
 
 @Slf4j
 public class UserCellRenderer extends JLabel implements ListCellRenderer<UserInfo> {
