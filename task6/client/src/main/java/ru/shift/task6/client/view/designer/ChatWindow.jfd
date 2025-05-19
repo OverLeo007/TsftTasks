@@ -1,0 +1,126 @@
+JFDML JFormDesigner: "8.2.4.0.393" Java: "21.0.3" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		auxiliary() {
+			"JavaCodeGenerator.defaultVariableModifiers": 4
+		}
+		add( new FormWindow( "javax.swing.JFrame", new FormLayoutManager( class javax.swing.BoxLayout ) ) {
+			name: "this"
+			"$sizePolicy": 1
+			"title": "Чат"
+			"defaultCloseOperation": 0
+			"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+			"minimumSize": new java.awt.Dimension( 648, 312 )
+			"preferredSize": new java.awt.Dimension( 648, 312 )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) {
+				"hgap": 2
+				"vgap": 2
+			} ) {
+				name: "panel4"
+				"border": new javax.swing.border.EmptyBorder( 5, 5, 5, 5 )
+				"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+				auxiliary() {
+					"JavaCodeGenerator.variableLocal": true
+				}
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class javax.swing.BoxLayout ) {
+					"axis": 1
+				} ) {
+					name: "panel3"
+					"componentOrientation": sfield java.awt.ComponentOrientation LEFT_TO_RIGHT
+					"border": new javax.swing.border.TitledBorder( new javax.swing.border.LineBorder( new java.awt.Color( 40, 42, 54, 255 ), 1, true ), "Активные пользователи", 2, 0, new java.awt.Font( "JetBrains Mono", 0, 12 ), sfield java.awt.Color gray )
+					"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+					auxiliary() {
+						"JavaCodeGenerator.variableLocal": true
+					}
+					add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
+						name: "scrollPane1"
+						"minimumSize": new java.awt.Dimension( 230, 16 )
+						"preferredSize": new java.awt.Dimension( 230, 162 )
+						"border": new javax.swing.border.EmptyBorder( 0, 5, 0, 5 )
+						"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+						auxiliary() {
+							"JavaCodeGenerator.variableLocal": true
+						}
+						add( new FormComponent( "javax.swing.JList" ) {
+							name: "usersList"
+							"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+							"focusable": false
+							auxiliary() {
+								"JavaCodeGenerator.typeParameters": "UserInfo"
+								"JavaCodeGenerator.customCreateCode": "new JList<>();"
+								"JavaCodeGenerator.postInitCode": "${field}.setCellRenderer(new UserCellRenderer());\n${field}.setSelectionModel(new DefaultListSelectionModel() {\n    @Override\n    public void setSelectionInterval(int index0, int index1) {\n    }\n});\n${field}.setBackground(new Color(0x3c3f41));"
+							}
+						} )
+					} )
+				}, new FormLayoutConstraints( class java.lang.String ) {
+					"value": "Before"
+				} )
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class javax.swing.BoxLayout ) {
+					"axis": 1
+				} ) {
+					name: "panel1"
+					"border": new javax.swing.border.TitledBorder( new javax.swing.border.LineBorder( new java.awt.Color( 40, 42, 54, 255 ), 1, true ), "Чат", 2, 0, null, sfield java.awt.Color gray )
+					"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+					auxiliary() {
+						"JavaCodeGenerator.variableLocal": true
+					}
+					add( new FormComponent( "javax.swing.JLabel" ) {
+						name: "chatErrorLabel"
+						"foreground": new java.awt.Color( 255, 255, 102, 255 )
+						"minimumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+						"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+						"text": "Server disconnected"
+						"horizontalAlignment": 0
+						"preferredSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+						"visible": false
+					} )
+					add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
+						name: "scrollPane3"
+						auxiliary() {
+							"JavaCodeGenerator.variableLocal": true
+						}
+						add( new FormComponent( "javax.swing.JTextPane" ) {
+							name: "chatArea"
+							"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+							"editable": false
+							"focusable": false
+							auxiliary() {
+								"JavaCodeGenerator.postInitCode": "StyledDocument doc = ${field}.getStyledDocument();\nStyle defaultStyle = StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE);\n\nStyle regular = doc.addStyle(\"regular\", defaultStyle);\n\nStyle center = doc.addStyle(\"center\", regular);\nStyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);\nStyleConstants.setForeground(center, new Color(0x80c080));\n\nStyle time = doc.addStyle(\"time\", regular);\nStyleConstants.setForeground(time, new Color(0x808080));"
+							}
+						} )
+					} )
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class javax.swing.BoxLayout ) ) {
+						name: "panel2"
+						"preferredSize": new java.awt.Dimension( 91, 35 )
+						"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+						auxiliary() {
+							"JavaCodeGenerator.variableLocal": true
+						}
+						add( new FormComponent( "javax.swing.JTextField" ) {
+							name: "messageField"
+							"preferredSize": new java.awt.Dimension( 49, 31 )
+							"font": new java.awt.Font( "JetBrains Mono", 0, 12 )
+							"maximumSize": new java.awt.Dimension( 2147483647, 31 )
+						} )
+						add( new FormComponent( "javax.swing.JButton" ) {
+							name: "sendButton"
+							"preferredSize": new java.awt.Dimension( 42, 31 )
+							"minimumSize": new java.awt.Dimension( 78, 42 )
+							"maximumSize": new java.awt.Dimension( 78, 42 )
+							auxiliary() {
+								"JavaCodeGenerator.postInitCode": "${field}.setIcon(new FlatSVGIcon(Icons.SEND.icon()));"
+							}
+						} )
+					} )
+				}, new FormLayoutConstraints( class java.lang.String ) {
+					"value": "Center"
+				} )
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 35, 45 )
+			"size": new java.awt.Dimension( 875, 730 )
+		} )
+	}
+}

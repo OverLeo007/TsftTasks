@@ -1,0 +1,109 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "8.13" apply false
+    id "com.github.johnrengelman.shadow" version "8.1.1" apply false
+
+}
+
+group = 'ru.shift'
+version = '1.0'
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: "io.freefair.lombok"
+    apply plugin: "com.github.johnrengelman.shadow"
+
+    group = 'ru.shift.task6'
+    version = '1.0'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation 'org.slf4j:slf4j-api:2.0.13'
+        implementation 'ch.qos.logback:logback-classic:1.5.18'
+        implementation 'com.fasterxml.jackson.core:jackson-core:2.12.1'
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.0'
+        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
+
+        testImplementation platform('org.junit:junit-bom:5.10.0')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testImplementation 'org.assertj:assertj-core:3.24.1'
+
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+tasks.register("buildAll") {
+    group = "custom-build"
+    description = "Собирает fat-jar клиента и сервера с зависимостями"
+
+    dependsOn(":task6:client:shadowJar", ":task6:server:shadowJar")
+    doLast {
+        println("JAR-файлы клиента и сервера собраны в task6/dist")
+    }
+}
+
+
+tasks.register("buildAllClean") {
+    group = "custom-build"
+    description = "Собирает всё и очищает лишние build директории"
+
+    dependsOn(":task6:buildAll")
+    finalizedBy("cleanAllBuilds")
+}
+
+
+tasks.register("cleanAllBuilds") {
+    group = "custom-build"
+    description = "Удаляет все build директории в task6/* и task6/build"
+
+    doLast {
+        println("Удаление всех build директорий")
+
+        def modulesToClean = ["client", "server", "commons"]
+        modulesToClean.each { module ->
+            def buildDir = file("$rootDir/task6/$module/build")
+            if (buildDir.exists()) {
+                println("Удаление build директории: $buildDir")
+                buildDir.deleteDir()
+            }
+        }
+
+        def task6BuildDir = file("$rootDir/task6/build")
+        if (task6BuildDir.exists()) {
+            println("Удаление build директории task6/build")
+            task6BuildDir.deleteDir()
+        }
+    }
+}
+
+
+tasks.register("cleanDist") {
+    group = "custom-build"
+    description = "Удаляет dist директорию в task6/"
+
+    doLast {
+        def distDir = file("$rootDir/task6/dist")
+        if (distDir.exists()) {
+            println("Удаление dist директории: $distDir")
+            distDir.deleteDir()
+        }
+    }
+}
+
+tasks.register("cleanAll") {
+    group = "custom-build"
+    description = "Удаляет все build и dist директории в task6/*"
+
+    dependsOn("cleanAllBuilds", "cleanDist")
+    doLast {
+        println("Все build и dist директории удалены")
+    }
+}
+

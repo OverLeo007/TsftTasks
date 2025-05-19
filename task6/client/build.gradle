@@ -1,0 +1,19 @@
+dependencies {
+    implementation project(':task6:commons')
+    shadow project(':task6:commons')
+    implementation 'com.miglayout:miglayout-swing:5.0'
+    runtimeOnly 'com.formdev:flatlaf-intellij-themes:3.5.2'
+    implementation 'com.formdev:flatlaf-extras:3.5.2'
+}
+
+
+shadowJar {
+    archiveBaseName.set(project.name)
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    destinationDirectory.set(file("$rootDir/task6/dist"))
+
+    manifest {
+        attributes 'Main-Class': 'ru.shift.task6.client.Main'
+    }
+}
